@@ -1,34 +1,102 @@
-# My Application README
+# Application README
 
-- [ ] TODO Replace or update this README with instructions relevant to your application
+## Project Overview
 
-To start the application in development mode, import it into your IDE and run the `Application` class. 
-You can also start the application from the command line by running: 
+This application is a web-based system developed using **Java, Vaadin, and MySQL**. It provides an interface for viewing submitted reports and complaints.
+
+### Implemented Features
+
+- **View Reports** – Allows users to view reports stored in the database.
+- **View Complaints** – Allows users to view complaints stored in the database.
+- **Data Models** – Includes the models used to represent and manage application data.
+- **Dummy SQL Data** – Includes sample SQL data for testing and development purposes.
+
+## Technologies Used
+
+- **Java** – Primary programming language.
+- **Vaadin** – Framework for building the web-based user interface.
+- **MySQL** – Relational database management system.
+- **Maven** – Project dependency management and build tool.
+- **IntelliJ IDEA** – Integrated development environment (IDE).
+
+## Prerequisites
+
+Before running the application, make sure you have installed:
+
+1. **Java JDK** – Use the version required by the project configuration.
+2. **IntelliJ IDEA** – Used to open, configure, and run the project.
+3. **Vaadin Plugin for IntelliJ IDEA** – Install the Vaadin plugin to support Vaadin development within the IDE.
+4. **MySQL Server** – Required to store and retrieve application data.
+5. **Maven** – The project includes a Maven Wrapper (`mvnw`), so a separate Maven installation may not be necessary.
+
+## Getting Started
+
+### 1. Clone or Download the Repository
+
+Clone the project repository or download its source code to your computer.
+
+### 2. Open the Project in IntelliJ IDEA
+
+1. Launch IntelliJ IDEA.
+2. Select **Open** and choose the project's root directory.
+3. Allow IntelliJ IDEA to import the Maven project and download its dependencies.
+4. Install the **Vaadin plugin** if it is not already installed. You can find it under **Settings → Plugins**.
+
+### 3. Configure MySQL
+
+1. Start your MySQL server.
+2. Create the database required by the application.
+3. Import the provided dummy SQL file into the appropriate database.
+4. Configure the application's database connection settings with your MySQL hostname, port, database name, username, and password.
+
+Check the project's configuration files, such as `application.properties`, for the expected database settings. Update them to match your local MySQL configuration.
+
+**Note:** The database must be running, and the required tables and sample data must be available before testing the report and complaint viewing features.
+
+### 4. Run the Application
+
+Locate the `Application` class in IntelliJ IDEA and run it.
+
+Alternatively, open a terminal in the project's root directory and execute:
 
 ```bash
 ./mvnw
 ```
 
-To build the application in production mode, run:
+On Windows, use:
+
+```powershell
+.\mvnw.cmd
+```
+
+Once the application starts, open the local URL displayed in the run console to access the application.
+
+## Building the Application
+
+To compile and package the application using Maven, run:
 
 ```bash
 ./mvnw package
 ```
 
-To build a Docker image, run:
+On Windows:
 
-```bash
-docker build -t my-application:latest .
+```powershell
+.\mvnw.cmd package
 ```
 
-If you use commercial components, pass the license key as a build secret:
+The generated build artifacts will be placed in the `target/` directory.
 
-```bash
-docker build --secret id=proKey,src=$HOME/.vaadin/proKey .
-```
+## Current Development Status
 
-## Getting Started
+The current implementation includes the data models, dummy SQL data, and user interface features for viewing reports and complaints.
 
-The [Quick Start](https://vaadin.com/docs/v25/getting-started/quick-start) tutorial helps you get started with Vaadin in 
-around 10 minutes. This tutorial walks you through building a simple application, introducing the core concepts along 
-the way.
+Additional functionality may be added as development progresses.
+
+## Notes for Developers
+
+- Ensure that the MySQL connection settings are correct before running the application.
+- Keep the database schema consistent with the application's data models.
+- Use the provided dummy SQL data for development and testing.
+- Install and enable the Vaadin plugin in IntelliJ IDEA for a smoother development workflow.
+- Do not commit database passwords or other sensitive credentials to version control.
