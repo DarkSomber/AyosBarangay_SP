@@ -382,3 +382,242 @@ vaadin-button.settings-logout {
   color: #222;
   cursor: pointer;
 }
+
+/* ===== Login page: append this to styles.css ===== */
+
+.login-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2rem, 8vw, 7rem);
+  padding: 2rem;
+  background: #ffffff;
+}
+
+/* Left: logo + name */
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.login-logo {
+  width: clamp(10rem, 22vw, 15.5rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover; /* keeps an <Image> circular without stretching */
+}
+
+.login-logo-placeholder {
+  background: #808080;
+}
+
+.login-brand-name {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Right: grey card */
+.login-card {
+  box-sizing: border-box;
+  width: min(100%, 31rem);
+  min-height: 21rem;
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 3rem 2rem;
+  background: #d9d9d9;
+  border-radius: 12px;
+}
+
+.login-heading {
+  margin: 0 0 2rem;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Vaadin fields: white rounded input, small label above (as in the mockup) */
+.login-field {
+  width: 100%;
+  --vaadin-input-field-background: #ffffff;
+  --vaadin-input-field-border-radius: 8px;
+  --vaadin-input-field-label-font-size: 0.75rem;
+  --lumo-contrast-10pct: #ffffff; /* Lumo input background fallback */
+  --lumo-border-radius-m: 8px;
+}
+
+/* Pushes the button + link to the bottom of the card */
+.login-actions {
+  margin-top: auto;
+  padding-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+vaadin-button.login-button {
+  min-width: 7.5rem;
+  background: #ffffff;
+  color: #000000;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+vaadin-button.login-forgot {
+  background: transparent;
+  color: #000000;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Stack on narrow screens */
+@media (max-width: 760px) {
+  .login-page {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 2rem;
+  }
+
+  .login-card {
+    padding: 2rem 1.5rem 1.5rem;
+  }
+}
+
+/* ---------- Forgot Password (dialog) ---------- */
+/* Append to styles.css. Colors are temporary placeholders. */
+
+.forgot-root {
+  width: 380px;
+  height: 460px;
+  max-width: 92vw;
+  max-height: 90vh;
+  box-sizing: border-box;
+  background: #d9d9d9;
+}
+
+.forgot-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 40px 32px 32px;
+  text-align: center;
+}
+
+.forgot-heading {
+  margin: 0 0 16px;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.forgot-subtitle {
+  max-width: 280px;
+  margin-bottom: 24px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.forgot-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.forgot-field {
+  width: 100%;
+  text-align: left;
+  --lumo-contrast-10pct: #ffffff; /* white input background */
+  --lumo-border-radius-m: 8px;
+}
+
+/* 6 digit boxes */
+.forgot-code-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+vaadin-text-field.code-box {
+  width: 44px;
+  min-width: 0;
+  padding: 0;
+  --lumo-contrast-10pct: #ffffff;
+  --lumo-border-radius-m: 8px;
+}
+
+vaadin-text-field.code-box input {
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+/* button(s) pinned to the bottom of the panel */
+.forgot-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+vaadin-button.forgot-button {
+  min-width: 8.5rem;
+  background: #ffffff;
+  color: #000000;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+vaadin-button.forgot-link {
+  background: transparent;
+  color: #000000;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- User screens ---------- */
+/* Append to styles.css. The user layout reuses the admin-* classes; only the sidebar Logout is new. */
+
+vaadin-button.sidebar-logout {
+  align-self: flex-start;
+  margin: auto 0 0 0;
+  border-radius: 0;
+  background: #e6e6e6;
+  color: #222;
+  cursor: pointer;
+}
+
+/* Circle button: fixed in the top-left corner so it works with the sidebar open or closed */
+vaadin-button.user-menu-button {
+  position: fixed;
+  top: 12px;
+  left: 20px;
+  z-index: 20;
+  border: 1px solid #333;
+}
+
+/* Keeps the sidebar buttons clear of the floating circle */
+.user-menu-space {
+  height: 40px;
+  margin-bottom: 40px;
+  flex-shrink: 0;
+}
+
+/* Header with only the title, aligned right */
+.user-header {
+  justify-content: flex-end;
+}
