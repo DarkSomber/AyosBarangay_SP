@@ -30,7 +30,6 @@ public class ReportRow extends Div {
         Span dot = new Span();
         dot.addClassNames("status-dot",
                 "status-" + report.status().name().toLowerCase().replace('_', '-'));
-
         Div status = new Div(statusLabel, dot);
         status.addClassName("report-status");
 

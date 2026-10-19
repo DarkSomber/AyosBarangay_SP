@@ -1,36 +1,43 @@
 package com.example.view;
 
+import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import com.example.controller.ReportController;
 import com.example.model.Report;
+import com.example.model.ReportImage;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.IFrame;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.server.StreamResource;
 
-/**
- * Complaint Screen: a dialog showing one report's status, date, details,
- * and a map of where it was reported. Pure display, no logic.
- */
 public class ComplaintDialog extends Dialog {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MMMM d, yyyy  h:mm a");
 
-    public ComplaintDialog(Report report) {
+    private final ReportController controller;
+
+    public ComplaintDialog(Report report, ReportController controller) {
+        this.controller = controller;
         addClassName("complaint-dialog");
         setCloseOnOutsideClick(true);
         setCloseOnEsc(true);
 
         Div root = new Div(buildTopBar(report), buildBody(report));
-        root.addClassName("complaint-root"); // fixed size, set in styles.css
+        root.addClassName("complaint-root");
         add(root);
     }
 
     private Div buildTopBar(Report report) {
-        Span statusLabel = new Span("Status: " + report.status().getLabel());
+        Span statusLabel = new Span("Report #" + report.reportId() + "  |  Status: " + report.status().getLabel());
         Span dot = new Span();
         dot.addClassNames("status-dot",
                 "status-" + report.status().name().toLowerCase().replace('_', '-'));
@@ -53,8 +60,55 @@ public class ComplaintDialog extends Dialog {
         Span details = new Span(report.description());
         details.addClassName("complaint-details");
 
-        Div photo = new Div(new Span("No photo attached"));
-        photo.addClassName("complaint-photo");
+        var images = controller.getImagesForReport(report.reportId());
+        Div photo;
+        if (images.isEmpty()) {
+            photo = new Div(new Span("No media attached"));
+            photo.addClassName("complaint-photo");
+        } else {
+            photo = new Div();
+            photo.addClassName("complaint-photo-gallery");
+
+            for (ReportImage img : images) {
+                String path = img.imagePath();
+                String lowerPath = path.toLowerCase();
+
+                try {
+                    Path p = Paths.get(path);
+                    // Read file into memory to avoid locking issues and path problems
+                    byte[] fileBytes = Files.readAllBytes(p);
+
+                    StreamResource resource = new StreamResource(
+                            "media-" + img.imageId(),
+                            () -> new ByteArrayInputStream(fileBytes)
+                    );
+
+                    if (lowerPath.endsWith(".mp4")) {
+                        resource.setContentType("video/mp4");
+                        IFrame videoFrame = new IFrame();
+                        videoFrame.setSrc(resource);
+                        videoFrame.setWidth("100%");
+                        videoFrame.setHeight("200px");
+                        videoFrame.getElement().setAttribute("style",
+                                "border:none; border-radius:4px; margin-bottom:4px; overflow:hidden; pointer-events: auto;");
+                        videoFrame.getElement().setAttribute("allow", "autoplay");
+                        photo.add(videoFrame);
+                    } else {
+                        // Assume image
+                        String mimeType = lowerPath.endsWith(".png") ? "image/png" : "image/jpeg";
+                        resource.setContentType(mimeType);
+
+                        Image pic = new Image(resource, "report media");
+                        pic.setHeight("100px");
+                        pic.getStyle().set("border-radius", "4px").set("margin-right", "4px").set("object-fit", "cover");
+                        photo.add(pic);
+                    }
+                } catch (Exception e) {
+                    // If file is missing or unreadable, just skip it
+                    e.printStackTrace();
+                }
+            }
+        }
 
         Div left = new Div(date, details, photo);
         left.addClassName("complaint-left");
@@ -70,7 +124,6 @@ public class ComplaintDialog extends Dialog {
         return body;
     }
 
-    /** OpenStreetMap embed with a marker. No extra dependency or API key needed. */
     private IFrame buildMap(Report report) {
         double lat = report.latitude();
         double lon = report.longitude();
