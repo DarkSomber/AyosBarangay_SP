@@ -263,3 +263,122 @@ vaadin-button.complaint-close {
   font-size: 0.9em;
   flex-shrink: 0;
 }
+/* ---------- Admin panels ---------- */
+/* Paste this at the bottom of your existing styles.css. */
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background: #d9d9d9;
+}
+
+.admin-shell.collapsed .admin-sidebar {
+  display: none;
+}
+
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 20px 22px;
+  background: #969696;
+}
+
+.admin-avatar {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 40px;
+  border: 1px solid #333;
+  border-radius: 50%;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+vaadin-button.admin-nav-button,
+vaadin-button.admin-login-button {
+  justify-content: flex-start;
+  height: 56px;
+  margin: 0;
+  border-radius: 0;
+  background: #d9d9d9;
+  color: #222;
+  cursor: pointer;
+}
+
+vaadin-button.admin-nav-button.active {
+  background: #575553;
+  color: white;
+}
+
+vaadin-button.admin-login-button {
+  justify-content: center;
+  margin-top: auto;
+}
+
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ---------- Admin settings ---------- */
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px 24px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 840px;
+  padding: 20px 22px;
+  border: 1px solid #bdbdbd;
+  border-radius: 6px;
+  background: #e6e6e6;
+}
+
+.settings-label {
+  font-size: 1.1em;
+}
+
+vaadin-button.settings-action {
+  border-radius: 6px;
+  background: #9a9a9a;
+  color: #111;
+  cursor: pointer;
+}
+
+vaadin-button.settings-logout {
+  align-self: flex-end;
+  margin-top: auto;
+  border-radius: 0;
+  background: #e6e6e6;
+  color: #222;
+  cursor: pointer;
+}
