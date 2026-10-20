@@ -17,7 +17,11 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-@Route("")
+/**
+ * Public Dashboard (default screen). The view builds the UI and forwards
+ * user actions to the controller. Styling lives in styles.css.
+ */
+@Route("dashboard")
 @PageTitle("AyosBarangay")
 public class PublicDashboardView extends Div {
 
