@@ -108,7 +108,7 @@ public class AdminReportsView extends Div {
         reports.forEach(r -> {
             ReportRow row = new ReportRow(r);
             // TODO: swap in an admin version of the dialog that can change the report status.
-            row.addClickListener(e -> new ComplaintDialog(r).open());
+            row.addClickListener(e -> new ComplaintDialog(r, controller).open());
             listContainer.add(row);
         });
     }

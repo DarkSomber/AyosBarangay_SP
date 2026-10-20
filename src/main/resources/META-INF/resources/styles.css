@@ -620,4 +620,275 @@ vaadin-button.user-menu-button {
 /* Header with only the title, aligned right */
 .user-header {
   justify-content: flex-end;
+/* ---------- DEV / TESTING strip (temporary demo login) ---------- */
+
+.dev-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 20px 12px 20px;
+  padding: 8px 12px;
+  border: 2px dashed #b26a00;
+  border-radius: 6px;
+  background: #fff4d6;
+}
+
+.dev-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #b26a00;
+  color: white;
+  font-size: 0.75em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.dev-status {
+  font-size: 0.9em;
+}
+
+vaadin-button.dev-button {
+  margin: 0;
+  border-radius: 6px;
+  background: #b26a00;
+  color: white;
+  cursor: pointer;
+}
+
+/* ---------- Create Report dialog ---------- */
+
+.create-report-dialog {
+  width: 850px;
+  height: 480px;
+  max-width: 88vw;
+  max-height: 85vh;
+  box-sizing: border-box;
+}
+
+.create-report-dialog::part(content) {
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.create-report-dialog::part(header) {
+  font-weight: 800;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.create-body {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.create-left,
+.create-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+vaadin-button.create-image-button {
+  align-self: flex-start;
+  height: 28px;
+  border-radius: 0;
+  background: #cfcfcf;
+  color: #222;
+  font-size: 0.85em;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.create-description {
+  border: 1px solid #bdbdbd;
+  flex: 1;
+  min-height: 0;
+}
+
+.create-description::part(input-field) {
+  height: 100%;
+}
+
+.create-description::part(input-field) textarea {
+  height: 100%;
+  box-sizing: border-box;
+  resize: none;
+}
+
+.create-location-header {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+vaadin-button.create-auto-toggle {
+  height: 26px;
+  border-radius: 999px;
+  background: #d0d0d0;
+  color: #222;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+vaadin-button.create-auto-toggle.on {
+  background: #3a3a3a;
+  color: white;
+}
+
+/* Stretch map to fill remaining space */
+.create-map {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border-radius: 2px;
+  background: #e0e0e0;
+  z-index: 1;
+}
+
+.create-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.create-address {
+  border: 1px solid #bdbdbd;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.create-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+vaadin-button.create-submit {
+  border-radius: 2px;
+  background: #cfcfcf;
+  color: #222;
+  font-size: 0.8em;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+vaadin-button.create-cancel {
+  border-radius: 2px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+}
+
+.create-error {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #fde8e8;
+  color: #a11;
+  flex-shrink: 0;
+}
+
+/* Cancel Warning Prompt */
+.cancel-warning-text {
+  display: block;
+  text-align: center;
+  font-weight: 700;
+  padding: 8px 12px 4px;
+}
+
+.cancel-warning-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+vaadin-button.filter-chip[active] {
+  background: #2f6fed; /* Blue for scope toggle */
+  color: white;
+  border-color: #2f6fed;
+}
+
+/* ---------- Create Report Map ---------- */
+
+.create-map {
+  flex: 1;
+  min-height: 250px;
+  width: 100%;
+  border-radius: 2px;
+  background: #e0e0e0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.create-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  border-radius: 2px;
+}
+
+/* ---------- Media Upload & Gallery ---------- */
+
+.create-image-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.create-upload {
+  width: 100%;
+}
+
+.create-image-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.create-image-chip {
+  background: #cfcfcf;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75em;
+}
+
+.complaint-photo-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.complaint-photo-gallery video {
+  width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+}
+
+.complaint-photo-gallery img {
+  height: 100px;
+  border-radius: 4px;
+  margin-right: 4px;
+  object-fit: cover;
 }

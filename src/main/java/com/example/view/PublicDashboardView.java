@@ -4,6 +4,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import com.example.controller.ReportController;
+import com.example.controller.SessionController;
 import com.example.model.ReportStatus;
 import com.example.model.SortOrder;
 import com.vaadin.flow.component.button.Button;
@@ -25,22 +26,25 @@ import com.vaadin.flow.router.Route;
 public class PublicDashboardView extends Div {
 
     private final ReportController controller;
+    private final SessionController session;
 
-    private ReportStatus activeFilter = null; // null means "All"
+    private ReportStatus activeFilter = null;
     private SortOrder sortOrder = SortOrder.NEWEST;
+    private boolean showOnlyMyReports = false;
 
     private final Div listContainer = new Div();
+    private final Div devBar = new Div();
     private final Map<ReportStatus, Button> chipByStatus = new EnumMap<>(ReportStatus.class);
     private Button allChip;
+    private Button scopeToggle;
 
-    public PublicDashboardView(ReportController controller) {
+    public PublicDashboardView(ReportController controller, SessionController session) {
         this.controller = controller;
+        this.session = session;
         addClassName("dashboard");
-        add(buildHeader(), buildPanel(), buildCreateReportButton());
+        add(buildHeader(), buildDevBar(), buildPanel(), buildCreateReportButton());
         refreshList();
     }
-
-    // ---------- UI building ----------
 
     private Div buildHeader() {
         Button menu = new Button(VaadinIcon.MENU.create());
@@ -56,6 +60,47 @@ public class PublicDashboardView extends Div {
         return header;
     }
 
+    private Div buildDevBar() {
+        devBar.addClassName("dev-bar");
+        refreshDevBar();
+        return devBar;
+    }
+
+    private void refreshDevBar() {
+        devBar.removeAll();
+        devBar.setVisible(session.isDemoLoginEnabled());
+        if (!session.isDemoLoginEnabled()) {
+            return;
+        }
+
+        Span badge = new Span("DEV / TESTING ONLY");
+        badge.addClassName("dev-badge");
+        devBar.add(badge);
+
+        if (session.isLoggedIn()) {
+            String name = session.getCurrentUser().map(u -> u.fullName()).orElse("?");
+            Span who = new Span("Testing as " + name + " (non-admin)");
+            who.addClassName("dev-status");
+            Button reset = new Button("Logout / Reset test session", e -> {
+                session.reset();
+                refreshDevBar();
+                refreshList();
+                Notification.show("Test session cleared.");
+            });
+            reset.addClassName("dev-button");
+            devBar.add(who, reset);
+        } else {
+            Button start = new Button("Continue as Non-Admin", e -> {
+                session.continueAsNonAdmin();
+                refreshDevBar();
+                refreshList();
+                Notification.show("Testing as " + SessionController.DEMO_NAME + " (non-admin).");
+            });
+            start.addClassName("dev-button");
+            devBar.add(start);
+        }
+    }
+
     private Div buildPanel() {
         listContainer.addClassName("report-list");
         Div panel = new Div(buildFilterBar(), listContainer);
@@ -66,6 +111,16 @@ public class PublicDashboardView extends Div {
     private Div buildFilterBar() {
         Div filterBar = new Div();
         filterBar.addClassName("filter-bar");
+
+        scopeToggle = new Button("My Reports");
+        scopeToggle.addClassName("filter-chip");
+        scopeToggle.setVisible(session.isLoggedIn());
+        scopeToggle.addClickListener(e -> {
+            showOnlyMyReports = !showOnlyMyReports;
+            updateChips();
+            refreshList();
+        });
+        filterBar.add(scopeToggle);
 
         allChip = makeChip("All", null);
         filterBar.add(allChip);
@@ -104,24 +159,51 @@ public class PublicDashboardView extends Div {
     private void updateChips() {
         allChip.setClassName("active", activeFilter == null);
         chipByStatus.forEach((s, chip) -> chip.setClassName("active", activeFilter == s));
+
+        if (scopeToggle != null) {
+            scopeToggle.setVisible(session.isLoggedIn());
+            scopeToggle.setClassName("active", showOnlyMyReports);
+        }
     }
 
     private Button buildCreateReportButton() {
         Button create = new Button("Create Report", VaadinIcon.PLUS.create());
         create.addClassName("create-report-button");
-        // Login isn't built yet. Later, check the session and open the Create Report dialog.
-        create.addClickListener(e -> Notification.show("Please log in to submit a report."));
+        create.addClickListener(e -> {
+            if (!session.isLoggedIn()) {
+                Notification.show("Please log in to submit a report.");
+                return;
+            }
+            var user = session.getCurrentUser().orElse(null);
+            if (user == null) return;
+
+            if (user.userId() == null) {
+                Notification.show("This testing account cannot submit reports (no user id).");
+                return;
+            }
+
+            new CreateReportDialog(controller, user.userId(), () -> {
+                showOnlyMyReports = true;
+                refreshList();
+            }).open();
+        });
         return create;
     }
 
-    // ---------- Rendering ----------
-
     private void refreshList() {
         listContainer.removeAll();
+
         var reports = controller.getReports(activeFilter, sortOrder);
+        if (showOnlyMyReports && session.isLoggedIn()) {
+            var currentUser = session.getCurrentUser().orElse(null);
+            if (currentUser != null && currentUser.userId() != null) {
+                reports = controller.getReportsForUser(currentUser.userId(), activeFilter, sortOrder);
+            }
+        }
 
         if (reports.isEmpty()) {
-            Span empty = new Span("No reports found.");
+            String msg = showOnlyMyReports ? "You haven't submitted any reports yet." : "No reports found.";
+            Span empty = new Span(msg);
             empty.addClassName("report-empty");
             listContainer.add(empty);
             return;
@@ -129,8 +211,7 @@ public class PublicDashboardView extends Div {
 
         reports.forEach(r -> {
             ReportRow row = new ReportRow(r);
-
-            row.addClickListener(e -> new ComplaintDialog(r).open());
+            row.addClickListener(e -> new ComplaintDialog(r, controller).open());
             listContainer.add(row);
         });
     }
