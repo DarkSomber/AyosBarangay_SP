@@ -1,33 +1,36 @@
 package com.example.view.user;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 import com.example.controller.ReportController;
+import com.example.controller.SessionController;
+import com.example.model.Report;
 import com.example.model.ReportStatus;
 import com.example.model.SortOrder;
 import com.example.view.ComplaintDialog;
+import com.example.view.CreateReportDialog;
 import com.example.view.ReportRow;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 /**
- * User: View Submitted Reports. Same list as the public dashboard (filter chips,
- * sort, report rows) shown inside the user layout, plus the Create Report button.
+ * User: View Submitted Reports. Shows only the reports submitted by the logged-in
+ * user (filter chips, sort, report rows) plus the Create Report button.
  * The view builds the UI and forwards actions to the controller.
- * Styling lives in styles.css.
  */
 @Route(value = "user/reports", layout = UserLayout.class)
 @PageTitle("My Reports | AyosBarangay")
 public class UserReportsView extends Div {
 
     private final ReportController controller;
+    private final SessionController session;
 
     private ReportStatus activeFilter = null; // null means "All"
     private SortOrder sortOrder = SortOrder.NEWEST;
@@ -36,8 +39,9 @@ public class UserReportsView extends Div {
     private final Map<ReportStatus, Button> chipByStatus = new EnumMap<>(ReportStatus.class);
     private Button allChip;
 
-    public UserReportsView(ReportController controller) {
+    public UserReportsView(ReportController controller, SessionController session) {
         this.controller = controller;
+        this.session = session;
         addClassName("admin-page");
         add(buildPanel(), buildCreateReportButton());
         refreshList();
@@ -98,8 +102,8 @@ public class UserReportsView extends Div {
     private Button buildCreateReportButton() {
         Button create = new Button("Create Report", VaadinIcon.PLUS.create());
         create.addClassName("create-report-button");
-        // TODO: open the Create Report dialog once it is built.
-        create.addClickListener(e -> Notification.show("Create Report is coming soon."));
+        create.addClickListener(e -> session.getCurrentUser().ifPresent(user ->
+                new CreateReportDialog(controller, user.userId(), this::refreshList).open()));
         return create;
     }
 
@@ -107,19 +111,23 @@ public class UserReportsView extends Div {
 
     private void refreshList() {
         listContainer.removeAll();
-        // TODO: once login exists, only load the reports submitted by the logged-in user.
-        var reports = controller.getReports(activeFilter, sortOrder);
+
+        var me = session.getCurrentUser();
+        List<Report> reports = me.isPresent()
+                ? controller.getReportsForUser(me.get().userId(), activeFilter, sortOrder)
+                : List.of();
 
         if (reports.isEmpty()) {
-            Span empty = new Span("No reports found.");
+            Span empty = new Span("You haven't submitted any reports yet.");
             empty.addClassName("report-empty");
             listContainer.add(empty);
             return;
         }
 
+        var images = controller.getOriginalImages(reports);
         reports.forEach(r -> {
-            ReportRow row = new ReportRow(r);
-            row.addClickListener(e -> new ComplaintDialog(r).open());
+            ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()));
+            row.addClickListener(e -> new ComplaintDialog(r, controller).open());
             listContainer.add(row);
         });
     }

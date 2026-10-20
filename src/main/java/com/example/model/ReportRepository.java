@@ -1,6 +1,7 @@
 package com.example.model;
 
 import java.util.List;
+import java.util.Collection;
 
 /**
  * Data access contract. The controller only knows about this interface,
@@ -10,12 +11,6 @@ import java.util.List;
 public interface ReportRepository {
 
     List<Report> findAll();
-
-    /**
-     * Persists a new report. Returns the saved report with its assigned reportId.
-     * Implementations decide how IDs are assigned (in-memory counter now,
-     * AUTO_INCREMENT later).
-     */
     Report save(Report report);
 
     /**
@@ -27,4 +22,9 @@ public interface ReportRepository {
      * Retrieves all media attachments associated with a specific report.
      */
     List<ReportImage> findImagesByReportId(int reportId);
+
+    /** Attachments of several reports at once, oldest first. */
+    default List<ReportImage> findImagesByReportIds(Collection<Integer> reportIds) {
+        return reportIds.stream().flatMap(id -> findImagesByReportId(id).stream()).toList();
+    }
 }

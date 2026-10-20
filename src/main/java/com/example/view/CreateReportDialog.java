@@ -15,7 +15,6 @@ import java.util.Locale;
 import java.util.UUID;
 
 import com.example.controller.ReportController;
-import com.example.model.ImageType;
 import com.example.model.Report;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Key;
@@ -32,7 +31,7 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 
 public class CreateReportDialog extends Dialog {
 
-    private static final Path UPLOAD_DIR = Paths.get(System.getProperty("java.io.tmpdir"), "ayosbarangay-uploads");
+    static final Path UPLOAD_DIR = UploadDir.get();
 
     private final ReportController controller;
     private final int userId;
@@ -372,11 +371,9 @@ public class CreateReportDialog extends Dialog {
 
         submitting = true;
         try {
-            Report saved = controller.submitReport(userId, desc, addr, latitude, longitude);
-
-            for (Path mediaPath : pendingMediaPaths) {
-                controller.saveReportImage(saved.reportId(), mediaPath.toString(), ImageType.ORIGINAL);
-            }
+            // Saves the report and all its media to the database in one transaction.
+            Report saved = controller.submitReportWithMedia(userId, desc, addr, latitude, longitude,
+                    pendingMediaPaths.stream().map(Path::toString).toList());
 
             submitted = true;
             Notification.show(String.format(Locale.ROOT, "Report #%d submitted with %d file(s).", saved.reportId(), pendingMediaPaths.size()), 3000, Notification.Position.BOTTOM_START);
@@ -385,6 +382,7 @@ public class CreateReportDialog extends Dialog {
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         } catch (RuntimeException ex) {
+            ex.printStackTrace(); // shows the real database error in the console
             showError("The report could not be saved. Please try again.");
         } finally {
             submitting = false;

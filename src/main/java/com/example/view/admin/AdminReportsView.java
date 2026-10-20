@@ -2,6 +2,7 @@ package com.example.view.admin;
 
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.List;
 
 import com.example.controller.ReportController;
 import com.example.model.ReportStatus;
@@ -15,18 +16,14 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-/**
- * Admin: Unresolved Reports. Same list as the public dashboard (filter chips,
- * sort, report rows) shown inside the admin layout. The view builds the UI and
- * forwards actions to the controller. Styling lives in styles.css.
- */
+/** Admin: reports that still need attention (Pending / Under Review). */
 @Route(value = "admin/reports", layout = AdminLayout.class)
 @PageTitle("Unresolved Reports | AyosBarangay")
 public class AdminReportsView extends Div {
 
     private final ReportController controller;
 
-    private ReportStatus activeFilter = null; // null means "All"
+    private ReportStatus activeFilter = null; // null means "All" open reports
     private SortOrder sortOrder = SortOrder.NEWEST;
 
     private final Div listContainer = new Div();
@@ -55,7 +52,8 @@ public class AdminReportsView extends Div {
 
         allChip = makeChip("All", null);
         filterBar.add(allChip);
-        for (ReportStatus s : ReportStatus.values()) {
+        // Only offer chips for statuses that can appear on this page.
+        for (ReportStatus s : ReportController.OPEN_STATUSES) {
             Button chip = makeChip(s.getLabel(), s);
             chipByStatus.put(s, chip);
             filterBar.add(chip);
@@ -96,17 +94,18 @@ public class AdminReportsView extends Div {
 
     private void refreshList() {
         listContainer.removeAll();
-        var reports = controller.getReports(activeFilter, sortOrder);
+        var reports = controller.getOpenReports(activeFilter, sortOrder);
 
         if (reports.isEmpty()) {
-            Span empty = new Span("No reports found.");
+            Span empty = new Span("No unresolved reports.");
             empty.addClassName("report-empty");
             listContainer.add(empty);
             return;
         }
 
+        var images = controller.getOriginalImages(reports);
         reports.forEach(r -> {
-            ReportRow row = new ReportRow(r);
+            ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()));
             // TODO: swap in an admin version of the dialog that can change the report status.
             row.addClickListener(e -> new ComplaintDialog(r, controller).open());
             listContainer.add(row);

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
  * Sample data for now. When you add JDBC, create JdbcReportRepository
  * implementing ReportRepository and remove @Repository from this class.
  */
-@Repository
+
 public class InMemoryReportRepository implements ReportRepository {
 
     private final List<Report> reports = new ArrayList<>(List.of(

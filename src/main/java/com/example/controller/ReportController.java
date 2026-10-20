@@ -2,8 +2,12 @@ package com.example.controller;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.model.ImageType;
 import com.example.model.Report;
@@ -19,6 +23,10 @@ import com.example.model.SortOrder;
 @Service
 public class ReportController {
 
+    /** Statuses that still need admin attention. Add UNRESOLVABLE here if you want it listed too. */
+    public static final List<ReportStatus> OPEN_STATUSES =
+            List.of(ReportStatus.PENDING, ReportStatus.UNDER_REVIEW);
+
     private final ReportRepository repository;
 
     public ReportController(ReportRepository repository) {
@@ -28,6 +36,17 @@ public class ReportController {
     /** @param status filter by status, or null for all reports */
     public List<Report> getReports(ReportStatus status, SortOrder order) {
         return filterAndSort(repository.findAll(), status, order);
+    }
+
+    /**
+     * Reports that are still open (see OPEN_STATUSES). Used by the admin "Unresolved Reports" page.
+     * @param status narrow to one open status, or null for all open ones
+     */
+    public List<Report> getOpenReports(ReportStatus status, SortOrder order) {
+        List<Report> open = repository.findAll().stream()
+                .filter(r -> OPEN_STATUSES.contains(r.status()))
+                .toList();
+        return filterAndSort(open, status, order);
     }
 
     /** Retrieves only the reports submitted by a specific user. */
@@ -50,11 +69,6 @@ public class ReportController {
                 .toList();
     }
 
-    /**
-     * Submits a new report. Uses Report.submit so the submission date and initial
-     * PENDING status follow the existing convention. Rejects an exact duplicate
-     * (same user, description and address) among that user's non-deleted reports.
-     */
     public Report submitReport(int userId, String description, String address,
                                double latitude, double longitude) {
         Report candidate = Report.submit(userId, description, address, latitude, longitude);
@@ -71,6 +85,16 @@ public class ReportController {
         return repository.save(candidate);
     }
 
+    @Transactional
+    public Report submitReportWithMedia(int userId, String description, String address,
+                                        double latitude, double longitude, List<String> mediaPaths) {
+        Report saved = submitReport(userId, description, address, latitude, longitude);
+        for (String path : mediaPaths) {
+            saveReportImage(saved.reportId(), path, ImageType.ORIGINAL);
+        }
+        return saved;
+    }
+
     /**
      * Persists an uploaded media file against a specific report.
      */
@@ -85,4 +109,17 @@ public class ReportController {
     public List<ReportImage> getImagesForReport(int reportId) {
         return repository.findImagesByReportId(reportId);
     }
+
+    /** ORIGINAL still pictures (no videos) for the given reports, in one query, keyed by report id. */
+    public Map<Integer, List<ReportImage>> getOriginalImages(List<Report> reports) {
+        List<Integer> ids = reports.stream().map(Report::reportId).toList();
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return repository.findImagesByReportIds(ids).stream()
+                .filter(img -> img.imageType() == ImageType.ORIGINAL)
+                .filter(img -> !img.imagePath().toLowerCase(Locale.ROOT).endsWith(".mp4"))
+                .collect(Collectors.groupingBy(ReportImage::reportId));
+    }
+
 }
