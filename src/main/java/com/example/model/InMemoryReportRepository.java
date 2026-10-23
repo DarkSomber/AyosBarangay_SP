@@ -9,10 +9,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 
 /**
- * Sample data for now. When you add JDBC, create JdbcReportRepository
- * implementing ReportRepository and remove @Repository from this class.
+ * Sample data, kept in memory (lost on restart).
+ * TEMP-DEV: active while the database is off. To go back to MySQL, remove @Repository
+ * from this class and restore @Repository on JdbcReportRepository.
  */
-
+@Repository
 public class InMemoryReportRepository implements ReportRepository {
 
     private final List<Report> reports = new ArrayList<>(List.of(
