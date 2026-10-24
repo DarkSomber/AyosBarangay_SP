@@ -1,5 +1,8 @@
 package com.example.view.admin;
 
+import com.example.controller.AuthController;
+import com.example.controller.SessionController;
+import com.example.view.ChangePasswordDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -14,16 +17,21 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Settings | AyosBarangay")
 public class AdminSettingsView extends Div {
 
-    public AdminSettingsView() {
+    private final AuthController auth;
+    private final SessionController session;
+
+    public AdminSettingsView(AuthController auth, SessionController session) {
+        this.auth = auth;
+        this.session = session;
         addClassName("admin-page");
         add(buildPanel());
     }
 
     private Div buildPanel() {
         Button editPassword = actionButton("Edit",
-                () -> Notification.show("Change password is coming soon."));
+                () -> new ChangePasswordDialog(auth, session).open());
         Button viewDetails = actionButton("View",
-                () -> Notification.show("Barangay details are coming soon."));
+                () -> new BarangayInfoDialog().open());
 
         Checkbox notifications = new Checkbox();
         notifications.setAriaLabel("New report notifications");
