@@ -17,6 +17,8 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.example.controller.PasswordResetController;
+import com.vaadin.flow.data.value.ValueChangeMode;
 
 /**
  * Forgot Password flow: one dialog that swaps its panel through four steps.
@@ -33,10 +35,12 @@ public class ForgotPasswordDialog extends Dialog {
 
     private final EmailField email = new EmailField("Email Address");
     private final List<TextField> codeBoxes = new ArrayList<>();
+    private final PasswordResetController reset;
     private final PasswordField newPassword = new PasswordField("Password");
     private final PasswordField confirmPassword = new PasswordField("Confirm Password");
 
-    public ForgotPasswordDialog() {
+    public ForgotPasswordDialog(PasswordResetController reset) {
+        this.reset = reset;
         addClassName("forgot-dialog");
         addThemeVariants(DialogVariant.LUMO_NO_PADDING); // the grey panel provides its own padding
         setCloseOnOutsideClick(true);
@@ -55,12 +59,12 @@ public class ForgotPasswordDialog extends Dialog {
         email.setErrorMessage("Enter a valid email address");
 
         Button submit = primaryButton("Submit", e -> {
-            // TEMP-DEV: validation disabled so the screens can be tested freely. Restore later.
-            // if (email.isEmpty() || email.isInvalid()) {
-            //     Notification.show("Enter a valid email address.");
-            //     return;
-            // }
-            // TODO: controller.sendResetCode(email.getValue());
+            if (email.isEmpty() || email.isInvalid()) {
+                Notification.show("Enter a valid email address.");
+                return;
+            }
+            reset.sendResetCode(email.getValue()).ifPresent(this::showCodeNotification);
+            Notification.show("If that email is registered, a code has been sent.");
             showCodeStep();
         });
 
@@ -77,21 +81,25 @@ public class ForgotPasswordDialog extends Dialog {
         buildCodeBoxes(boxes);
 
         Button verify = primaryButton("Verify", e -> {
-            // TEMP-DEV: code check disabled so the screens can be tested freely. Restore later.
-            // String code = readCode();
-            // if (code.length() < CODE_LENGTH) {
-            //     Notification.show("Enter the " + CODE_LENGTH + "-digit code.");
-            //     return;
-            // }
-            // TODO: if (!controller.verifyResetCode(email.getValue(), code)) { show error; return; }
+            String code = readCode();
+            if (code.length() < CODE_LENGTH) {
+                Notification.show("Enter the " + CODE_LENGTH + "-digit code.");
+                return;
+            }
+            if (!reset.verifyResetCode(email.getValue(), code)) {
+                codeBoxes.forEach(TextField::clear);
+                codeBoxes.get(0).focus();
+                Notification.show("Incorrect or expired code.");
+                return;
+            }
             showPasswordStep();
         });
 
         Button resend = new Button("Resend Code", e -> {
-            // TODO: controller.sendResetCode(email.getValue());
+            reset.sendResetCode(email.getValue()).ifPresent(this::showCodeNotification);
             codeBoxes.forEach(TextField::clear);
             codeBoxes.get(0).focus();
-            Notification.show("A new code was sent to your email.");
+            Notification.show("If that email is registered, a new code has been sent.");
         });
         resend.addClassName("forgot-link");
 
@@ -113,17 +121,22 @@ public class ForgotPasswordDialog extends Dialog {
         fields.addClassName("forgot-fields");
 
         Button confirm = primaryButton("Confirm", e -> {
-            // TEMP-DEV: password checks disabled so the screens can be tested freely. Restore later.
-            // String pw = newPassword.getValue();
-            // if (pw.length() < MIN_PASSWORD_LENGTH) {
-            //     Notification.show("Password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
-            //     return;
-            // }
-            // if (!pw.equals(confirmPassword.getValue())) {
-            //     Notification.show("Passwords do not match.");
-            //     return;
-            // }
-            // TODO: controller.resetPassword(email.getValue(), readCode(), pw);
+            String pw = newPassword.getValue();
+            if (pw.length() < MIN_PASSWORD_LENGTH) {
+                Notification.show("Password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
+                return;
+            }
+            if (!pw.equals(confirmPassword.getValue())) {
+                Notification.show("Passwords do not match.");
+                return;
+            }
+            try {
+                reset.resetPassword(email.getValue(), readCode(), pw);
+            } catch (IllegalArgumentException ex) {
+                Notification.show(ex.getMessage());
+                showEmailStep();
+                return;
+            }
             showDoneStep();
         });
 
@@ -179,6 +192,7 @@ public class ForgotPasswordDialog extends Dialog {
             TextField box = new TextField();
             box.addClassName("code-box");
             box.setMaxLength(1);
+            box.setValueChangeMode(ValueChangeMode.EAGER);
             box.setAllowedCharPattern("[0-9]");
             box.setAriaLabel("Digit " + (i + 1));
 
@@ -198,6 +212,15 @@ public class ForgotPasswordDialog extends Dialog {
             codeBoxes.add(box);
             row.add(box);
         }
+    }
+
+    //notification helper
+    private void showCodeNotification(String code) {
+        Notification n = new Notification();
+        n.add(new Span("Your verification code: " + code + " (valid for 10 minutes)"));
+        n.setPosition(Notification.Position.TOP_CENTER);
+        n.setDuration(30000);
+        n.open();
     }
 
     private String readCode() {

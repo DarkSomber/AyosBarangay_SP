@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.example.controller.PasswordResetController;
 import com.example.controller.AuthController;
 import com.example.controller.SessionController;
 import com.example.model.User;
@@ -28,15 +28,17 @@ public class LoginView extends Div {
 
     private static final Logger log = LoggerFactory.getLogger(LoginView.class);
 
+    private final PasswordResetController passwordReset;
     private final AuthController auth;
     private final SessionController session;
 
     private final EmailField email = new EmailField("Email");
     private final PasswordField password = new PasswordField("Password");
 
-    public LoginView(AuthController auth, SessionController session) {
+    public LoginView(AuthController auth, SessionController session, PasswordResetController passwordReset) {
         this.auth = auth;
         this.session = session;
+        this.passwordReset = passwordReset;
         addClassName("login-page");
         add(buildBrand(), buildCard());
         if (session.isDemoLoginEnabled()) {
@@ -74,7 +76,7 @@ public class LoginView extends Div {
         Button login = new Button("Log In", e -> attemptLogin());
         login.addClassName("login-button");
 
-        Button forgot = new Button("Forgot password", e -> new ForgotPasswordDialog().open());
+        Button forgot = new Button("Forgot password", e -> new ForgotPasswordDialog(passwordReset).open());
         forgot.addClassName("login-forgot");
 
         // Back to the public dashboard (visitors can view reports without an account).

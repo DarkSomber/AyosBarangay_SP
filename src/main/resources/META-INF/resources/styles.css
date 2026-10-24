@@ -900,3 +900,38 @@ vaadin-button.filter-chip[active] {
 .image-preview-root { display: flex; flex-direction: column; align-items: center; }
 .image-preview-top { align-self: flex-end; margin-bottom: 8px; }
 .image-preview-image { display: block; max-width: 80vw; max-height: 70vh; object-fit: contain; }
+
+/* Additional feature regarding password css */
+.forgot-root { background: #dff5cd; }
+.forgot-heading { color: #12260f; }
+.forgot-subtitle, .forgot-field label { color: #12260f; }
+
+.forgot-field {
+  --vaadin-input-field-background: #fffaee;
+  --vaadin-input-field-border-radius: 10px;
+  --lumo-contrast-10pct: #fffaee;
+  --lumo-border-radius-m: 10px;
+}
+
+vaadin-button.forgot-button {
+  background: #12260f;
+  color: #d9f0b0;
+  border-radius: 10px;
+}
+
+/* CSS for barangay info */
+.barangay-root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 340px;
+  height: 360px;
+  max-width: 92vw;
+  box-sizing: border-box;
+  padding: 24px;
+}
+.barangay-title { margin: 0 0 12px; text-align: center; font-weight: 800; }
+.barangay-field { width: 100%; --vaadin-input-field-background: #d9d9d9; }
+.barangay-location { min-height: 90px; }
+vaadin-button.barangay-close { align-self: flex-end; margin-top: auto; background: #d9d9d9; color: #222; border-radius: 2px; }
+
