@@ -1,5 +1,9 @@
 package com.example.view.user;
 
+import com.example.controller.AuthController;
+import com.example.controller.SessionController;
+import com.example.view.ChangePasswordDialog;
+import com.example.view.admin.BarangayInfoDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -17,16 +21,21 @@ import com.vaadin.flow.router.Route;
 @PageTitle("Settings | AyosBarangay")
 public class UserSettingsView extends Div {
 
-    public UserSettingsView() {
+    private final AuthController auth;
+    private final SessionController session;
+
+    public UserSettingsView(AuthController auth, SessionController session) {
+        this.auth = auth;
+        this.session = session;
         addClassName("admin-page");
         add(buildPanel());
     }
 
     private Div buildPanel() {
         Button editDetails = actionButton("Edit",
-                () -> Notification.show("Change user details is coming soon."));
+                () -> new ChangePasswordDialog(auth, session).open());
         Button viewDetails = actionButton("View",
-                () -> Notification.show("Barangay details are coming soon."));
+                        () -> new BarangayInfoDialog().open());
 
         Div panel = new Div(
                 settingRow("Change User Details", editDetails),
