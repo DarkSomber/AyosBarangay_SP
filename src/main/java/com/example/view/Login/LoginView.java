@@ -13,8 +13,8 @@ import com.example.view.user.UserReportsView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -40,7 +40,7 @@ public class LoginView extends Div {
         this.session = session;
         this.passwordReset = passwordReset;
         addClassName("login-page");
-        add(buildBrand(), buildCard());
+        add(buildBubbles(), buildBrand(), buildCard());
         if (session.isDemoLoginEnabled()) {
             add(buildDevBar());
         }
@@ -48,12 +48,29 @@ public class LoginView extends Div {
 
     // ---------- UI building ----------
 
+    /** Decorative glass bubbles in the background (purely visual, positioned in CSS). */
+    private Div buildBubbles() {
+        Div bubbles = new Div();
+        bubbles.addClassName("login-bubbles");
+        bubbles.getElement().setAttribute("aria-hidden", "true");
+        for (int i = 1; i <= 8; i++) {
+            Div bubble = new Div();
+            bubble.addClassNames("login-bubble", "login-bubble-" + i);
+            bubbles.add(bubble);
+        }
+        return bubbles;
+    }
+
     /** Left side: logo circle + app name. */
     private Div buildBrand() {
+        // The grey circle. To use a real image later, either:
+        //   (a) set background-image on .login-logo in CSS and drop the placeholder class, or
+        //   (b) replace this Div with: Image logo = new Image("images/logo.png", "AyosBarangay logo");
+        //       logo.addClassName("login-logo");
         Div logo = new Div();
         logo.addClassNames("login-logo", "login-logo-placeholder");
 
-        H3 name = new H3("AyosBarangay");
+        H1 name = new H1("AyosBarangay");
         name.addClassName("login-brand-name");
 
         Div brand = new Div(logo, name);
@@ -61,17 +78,19 @@ public class LoginView extends Div {
         return brand;
     }
 
-    /** Right side: grey card with the form. */
+    /** Right side: frosted card with the form. */
     private Div buildCard() {
         H2 heading = new H2("Login");
         heading.addClassName("login-heading");
 
         email.addClassName("login-field");
+        email.setPlaceholder("example@gmail.com");
         email.setRequiredIndicatorVisible(true);
         email.setErrorMessage("Enter a valid email address");
 
         password.addClassName("login-field");
         password.setRequiredIndicatorVisible(true);
+        password.setHelperText("*at least 1 of each: capital letter, small letter, special character, number");
 
         Button login = new Button("Log In", e -> attemptLogin());
         login.addClassName("login-button");

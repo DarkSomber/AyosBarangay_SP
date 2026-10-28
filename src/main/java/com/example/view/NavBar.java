@@ -65,6 +65,7 @@ public class NavBar extends Div {
         } else if (session.isLoggedIn()) {
             addNavButton(nav, "Settings", "user/settings", UserSettingsView.class);
             addNavButton(nav, "View Submitted Reports", "user/reports", UserReportsView.class);
+            addNavButton(nav, "Emergency Button", "user/emergency", UserEmergencyView.class);
         }
 
         add(menuSpace, nav, bottomButton());

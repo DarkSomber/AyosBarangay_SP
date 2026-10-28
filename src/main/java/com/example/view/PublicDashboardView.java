@@ -22,6 +22,7 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+
 /**
  * Public Dashboard: the start page of the app (route ""). Anyone can view
  * reports; submitting one needs a logged-in resident. It uses the same NavBar
@@ -66,10 +67,18 @@ public class PublicDashboardView extends Div {
     }
 
     private Div buildHeader() {
+        // Placeholder circle. Later: swap for new Image("images/logo.png", "AyosBarangay")
+        // with the same "brand-logo" class, or set background-image on .brand-logo in CSS.
+        Div logo = new Div();
+        logo.addClassNames("brand-logo", "brand-logo-placeholder");
+
         H3 title = new H3("AyosBarangay");
         title.addClassName("dashboard-title");
 
-        Div header = new Div(title);
+        Div brand = new Div(logo, title);
+        brand.addClassName("brand-lockup");
+
+        Div header = new Div(brand);
         header.addClassNames("dashboard-header", "user-header");
         return header;
     }
