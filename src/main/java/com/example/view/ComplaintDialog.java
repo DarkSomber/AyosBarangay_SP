@@ -5,14 +5,30 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CompletionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.example.ai.ReportAnalysis;
+import com.example.ai.ReportAnalysisException;
+import com.example.ai.ReportAnalysisService;
 import com.example.controller.ReportController;
+import com.example.duplicate.DuplicateCandidate;
+import com.example.duplicate.DuplicateReportService;
+import com.example.media.AttachmentAssessment;
+import com.example.media.AttachmentCheckService;
 import com.example.model.Report;
 import com.example.model.ReportImage;
+import com.example.spam.ReportSpamCheckService;
+import com.example.spam.SpamAssessment;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -22,17 +38,55 @@ import com.vaadin.flow.server.StreamResource;
 public class ComplaintDialog extends Dialog {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MMMM d, yyyy  h:mm a");
+    private static final Logger log = LoggerFactory.getLogger(ComplaintDialog.class);
 
     private final ReportController controller;
+    private final ReportAnalysisService analysisService;
+    private final DuplicateReportService duplicateReportService;
+    private final ReportSpamCheckService spamCheckService;
+    private final AttachmentCheckService attachmentCheckService;
 
     public ComplaintDialog(Report report, ReportController controller) {
+        this(report, controller, null, null, null, null);
+    }
+
+    public ComplaintDialog(Report report, ReportController controller,
+                           ReportAnalysisService analysisService) {
+        this(report, controller, analysisService, null, null, null);
+    }
+
+    public ComplaintDialog(Report report, ReportController controller,
+                           ReportAnalysisService analysisService,
+                           DuplicateReportService duplicateReportService) {
+        this(report, controller, analysisService, duplicateReportService, null, null);
+    }
+
+    public ComplaintDialog(Report report, ReportController controller,
+                           ReportAnalysisService analysisService,
+                           DuplicateReportService duplicateReportService,
+                           ReportSpamCheckService spamCheckService) {
+        this(report, controller, analysisService, duplicateReportService, spamCheckService, null);
+    }
+
+    public ComplaintDialog(Report report, ReportController controller,
+                           ReportAnalysisService analysisService,
+                           DuplicateReportService duplicateReportService,
+                           ReportSpamCheckService spamCheckService,
+                           AttachmentCheckService attachmentCheckService) {
         this.controller = controller;
+        this.analysisService = analysisService;
+        this.duplicateReportService = duplicateReportService;
+        this.spamCheckService = spamCheckService;
+        this.attachmentCheckService = attachmentCheckService;
         addClassName("complaint-dialog");
         setCloseOnOutsideClick(true);
         setCloseOnEsc(true);
 
         Div root = new Div(buildTopBar(report), buildBody(report));
-        root.addClassName("complaint-root");
+        root.addClassNames("complaint-root");
+        if (analysisService != null) {
+            root.addClassName("complaint-root-with-analysis");
+        }
         add(root);
     }
 
@@ -61,6 +115,8 @@ public class ComplaintDialog extends Dialog {
         details.addClassName("complaint-details");
 
         var images = controller.getImagesForReport(report.reportId());
+        AttachmentAssessment attachmentAssessment = attachmentCheckService == null
+                ? null : attachmentCheckService.inspect(images);
         Div photo;
         if (images.isEmpty()) {
             photo = new Div(new Span("No media attached"));
@@ -70,6 +126,10 @@ public class ComplaintDialog extends Dialog {
             photo.addClassName("complaint-photo-gallery");
 
             for (ReportImage img : images) {
+                if (attachmentAssessment != null
+                        && !attachmentAssessment.validPaths().contains(img.imagePath())) {
+                    continue;
+                }
                 String path = img.imagePath();
                 String lowerPath = path.toLowerCase();
 
@@ -105,13 +165,30 @@ public class ComplaintDialog extends Dialog {
                     }
                 } catch (Exception e) {
                     // If file is missing or unreadable, just skip it
-                    e.printStackTrace();
+                    log.warn("Skipping unreadable attachment {} for report {}",
+                            img.imageId(), report.reportId());
                 }
             }
         }
 
         Div left = new Div(date, details, photo);
+        if (analysisService != null) {
+            left.add(buildAnalysisSection(report));
+        }
+        if (duplicateReportService != null) {
+            left.add(buildDuplicateSection(report));
+        }
+        if (spamCheckService != null) {
+            left.add(buildSpamSection(report));
+        }
+        if (attachmentCheckService != null) {
+            left.add(buildAttachmentSection(attachmentAssessment, images.size()));
+        }
         left.addClassName("complaint-left");
+        if (analysisService != null || duplicateReportService != null
+                || spamCheckService != null || attachmentCheckService != null) {
+            left.addClassName("complaint-left-with-review-tools");
+        }
 
         Span address = new Span(report.address());
         address.addClassName("complaint-address");
@@ -122,6 +199,147 @@ public class ComplaintDialog extends Dialog {
         Div body = new Div(left, right);
         body.addClassName("complaint-body");
         return body;
+    }
+
+    private Div buildAnalysisSection(Report report) {
+        Button analyze = new Button("Analyze report");
+        analyze.addClassNames("complaint-analysis-button", "primary");
+        Span state = new Span();
+        state.addClassName("complaint-analysis-state");
+        state.setVisible(false);
+        Span error = new Span();
+        error.addClassName("complaint-analysis-error");
+        error.setVisible(false);
+        Div result = new Div();
+        result.addClassName("complaint-analysis-result");
+        result.setVisible(false);
+        analysisService.cachedAnalysis(report).ifPresent(analysis -> showAnalysis(result, analysis));
+        analyze.addClickListener(event -> startAnalysis(report, analyze, state, error, result));
+
+        Div section = new Div(new H4("AI report analysis"), analyze, state, error, result);
+        section.addClassName("complaint-analysis");
+        return section;
+    }
+
+    private Div buildDuplicateSection(Report report) {
+        Div section = new Div();
+        section.addClassName("complaint-duplicate-section");
+        section.add(new H4("Potential duplicate reports - review only"));
+
+        var candidates = duplicateReportService.findCandidates(report);
+        if (candidates.isEmpty()) {
+            section.add(new Span("No recent potential duplicates found."));
+            return section;
+        }
+
+        candidates.forEach(candidate -> section.add(duplicateCandidate(candidate)));
+        return section;
+    }
+
+    private Div duplicateCandidate(DuplicateCandidate candidate) {
+        Report possibleDuplicate = candidate.report();
+        Span title = new Span("Report #" + possibleDuplicate.reportId()
+                + " - " + possibleDuplicate.status().getLabel());
+        Span details = new Span(possibleDuplicate.dateSubmitted().format(DATE_FMT)
+                + " | " + possibleDuplicate.address());
+        Span reason = new Span("Match: " + candidate.reason());
+        Div item = new Div(title, details, reason);
+        item.addClassName("complaint-duplicate-candidate");
+        return item;
+    }
+
+    private Div buildSpamSection(Report report) {
+        Div section = new Div();
+        section.addClassName("complaint-spam-section");
+        section.add(new H4("Submission quality - advisory review"));
+        section.add(new Span("Flags do not reject reports or change their status."));
+
+        SpamAssessment assessment = spamCheckService.assess(report.description());
+        if (!assessment.flagged()) {
+            section.add(new Span("No obvious junk-text patterns detected."));
+            return section;
+        }
+        assessment.reasons().forEach(reason -> section.add(new Span(reason)));
+        return section;
+    }
+
+    private Div buildAttachmentSection(AttachmentAssessment assessment, int attachmentCount) {
+        Div section = new Div();
+        section.addClassName("complaint-attachment-section");
+        section.add(new H4("Attachment checks - advisory review"));
+        section.add(new Span("Warnings do not reject reports or change their status."));
+        section.add(new Span("MP4 checks verify the container signature, not full video playback."));
+
+        if (!assessment.attachmentProvided()) {
+            section.add(new Span("No attachment provided."));
+            return section;
+        }
+        if (!assessment.hasWarnings()) {
+            section.add(new Span("No attachment issues detected in " + attachmentCount + " file(s)."));
+            return section;
+        }
+        assessment.findings().forEach(finding -> {
+            Span warning = new Span(finding.fileName() + ": " + finding.reason());
+            warning.addClassName("complaint-attachment-warning");
+            section.add(warning);
+        });
+        return section;
+    }
+
+    private void startAnalysis(Report report, Button button, Span state, Span error, Div result) {
+        UI ui = getUI().orElse(null);
+        if (ui == null) {
+            error.setText("Analysis cannot start because this dialog is no longer active.");
+            error.setVisible(true);
+            return;
+        }
+
+        button.setEnabled(false);
+        button.setText("Analyzing...");
+        state.setText("Reviewing the report description...");
+        state.setVisible(true);
+        error.setVisible(false);
+        result.setVisible(false);
+
+        analysisService.analyze(report).whenComplete((analysis, failure) ->
+                ui.access(() -> {
+                    button.setEnabled(true);
+                    button.setText("Analyze report");
+                    state.setVisible(false);
+                    if (failure != null) {
+                        Throwable cause = failure;
+                        while (cause instanceof CompletionException && cause.getCause() != null) {
+                            cause = cause.getCause();
+                        }
+                        error.setText(cause instanceof ReportAnalysisException
+                                ? cause.getMessage()
+                                : "Analysis could not be completed. Please try again.");
+                        error.setVisible(true);
+                        return;
+                    }
+                    showAnalysis(result, analysis);
+                }));
+    }
+
+    private void showAnalysis(Div result, ReportAnalysis analysis) {
+        result.removeAll();
+        result.add(
+                analysisField("Urgency", analysis.urgency().name()),
+                analysisField("Urgency evidence", analysis.urgencyReason()),
+                analysisField("Category", analysis.category().name().replace('_', ' ')),
+                analysisField("Summary", analysis.summary()),
+                analysisField("Recommended next action", analysis.recommendedAction()),
+                analysisField("Suspicious-report review signal",
+                        (analysis.suspicious() ? "Flagged for human review" : "No specific indicators identified")
+                                + " - not proof"),
+                analysisField("Suspicious-report evidence", analysis.suspiciousReason()));
+        result.setVisible(true);
+    }
+
+    private Div analysisField(String label, String value) {
+        Div field = new Div(new Span(label), new Span(value));
+        field.addClassName("complaint-analysis-field");
+        return field;
     }
 
     private IFrame buildMap(Report report) {

@@ -4,9 +4,13 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.List;
 
+import com.example.ai.ReportAnalysisService;
 import com.example.controller.ReportController;
+import com.example.duplicate.DuplicateReportService;
+import com.example.media.AttachmentCheckService;
 import com.example.model.ReportStatus;
 import com.example.model.SortOrder;
+import com.example.spam.ReportSpamCheckService;
 import com.example.view.ComplaintDialog;
 import com.example.view.ReportRow;
 import com.vaadin.flow.component.button.Button;
@@ -22,6 +26,10 @@ import com.vaadin.flow.router.Route;
 public class AdminReportsView extends Div {
 
     private final ReportController controller;
+    private final ReportAnalysisService analysisService;
+    private final DuplicateReportService duplicateReportService;
+    private final ReportSpamCheckService spamCheckService;
+    private final AttachmentCheckService attachmentCheckService;
 
     private ReportStatus activeFilter = null; // null means "All" open reports
     private SortOrder sortOrder = SortOrder.NEWEST;
@@ -30,8 +38,15 @@ public class AdminReportsView extends Div {
     private final Map<ReportStatus, Button> chipByStatus = new EnumMap<>(ReportStatus.class);
     private Button allChip;
 
-    public AdminReportsView(ReportController controller) {
+    public AdminReportsView(ReportController controller, ReportAnalysisService analysisService,
+                            DuplicateReportService duplicateReportService,
+                            ReportSpamCheckService spamCheckService,
+                            AttachmentCheckService attachmentCheckService) {
         this.controller = controller;
+        this.analysisService = analysisService;
+        this.duplicateReportService = duplicateReportService;
+        this.spamCheckService = spamCheckService;
+        this.attachmentCheckService = attachmentCheckService;
         addClassName("admin-page");
         add(buildPanel());
         refreshList();
@@ -107,7 +122,9 @@ public class AdminReportsView extends Div {
         reports.forEach(r -> {
             ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()));
             // TODO: swap in an admin version of the dialog that can change the report status.
-            row.addClickListener(e -> new ComplaintDialog(r, controller).open());
+            row.addClickListener(e -> new ComplaintDialog(
+                    r, controller, analysisService, duplicateReportService,
+                    spamCheckService, attachmentCheckService).open());
             listContainer.add(row);
         });
     }

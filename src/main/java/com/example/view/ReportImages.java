@@ -36,22 +36,22 @@ final class ReportImages {
             Path file = Paths.get(image.imagePath()).toAbsolutePath().normalize();
             String mime = mimeType(file.getFileName().toString());
             if (mime == null) {
-                log.warn("Image {} skipped: unsupported type ({})", image.imageId(), file);
+                log.warn("Image {} skipped: unsupported file type", image.imageId());
                 return Optional.empty();
             }
             if (!file.startsWith(root) && !file.startsWith(legacyRoot)) {
-                log.warn("Image {} skipped: {} is outside upload folder {}", image.imageId(), file, root);
+                log.warn("Image {} skipped: file is outside the allowed upload folders", image.imageId());
                 return Optional.empty();
             }
             if (!Files.isRegularFile(file)) {
-                log.warn("Image {} skipped: file not found at {}", image.imageId(), file);
+                log.warn("Image {} skipped: file is missing or is not a regular file", image.imageId());
                 return Optional.empty();
             }
             StreamResource resource = new StreamResource(file.getFileName().toString(), () -> open(file));
             resource.setContentType(mime);
             return Optional.of(resource);
         } catch (InvalidPathException ex) {
-            log.warn("Image {} skipped: invalid path {}", image.imageId(), image.imagePath());
+            log.warn("Image {} skipped: stored file path is invalid", image.imageId());
             return Optional.empty();
         }
     }
@@ -71,6 +71,7 @@ final class ReportImages {
         try {
             return Files.newInputStream(file);
         } catch (IOException ex) {
+            log.warn("Unable to open a validated report image for preview");
             return InputStream.nullInputStream();
         }
     }

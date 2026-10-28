@@ -72,16 +72,6 @@ public class ReportController {
     public Report submitReport(int userId, String description, String address,
                                double latitude, double longitude) {
         Report candidate = Report.submit(userId, description, address, latitude, longitude);
-
-        boolean duplicate = repository.findAll().stream()
-                .filter(r -> !r.isDeleted())
-                .anyMatch(r -> r.userId() == userId
-                        && r.description().equalsIgnoreCase(candidate.description())
-                        && r.address().equalsIgnoreCase(candidate.address()));
-        if (duplicate) {
-            throw new IllegalArgumentException("A report with the same description and address already exists.");
-        }
-
         return repository.save(candidate);
     }
 
