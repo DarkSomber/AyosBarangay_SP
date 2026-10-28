@@ -71,6 +71,45 @@ On Windows, use:
 
 Once the application starts, open the local URL displayed in the run console to access the application.
 
+## Groq Report Analysis
+
+Administrators can request an AI-assisted assessment from the Analyze report button in a report dialog.
+The assessment is advisory only: it does not change report status, and a suspicious-report flag is a
+human-review signal, not proof. Only the report description is sent to Groq; report address, user
+identity, coordinates, and media are not included.
+The controlled report categories are infrastructure, water and drainage, waste management, public
+safety, animal control, public health, noise and disturbance, and other.
+
+Set `GROQ_API_KEY` in the application environment before starting the app. `GROQ_MODEL` optionally
+selects a Groq chat-completions model; its default is `openai/gpt-oss-20b`, which supports strict
+JSON-schema outputs according to the [Groq structured outputs documentation](https://console.groq.com/docs/structured-outputs).
+If you override the model, choose one currently listed by Groq as supporting strict structured outputs.
+For example, in PowerShell:
+
+```powershell
+$env:GROQ_API_KEY = "your-groq-api-key"
+$env:GROQ_MODEL = "openai/gpt-oss-20b"
+.\mvnw.cmd
+```
+
+The key is read from the environment and is not stored in the repository. Analysis results are
+cached in memory for the current application runtime; they are not persisted and are cleared on restart.
+
+## Attachment review checks
+
+The admin report dialog checks stored PNG/JPEG files by decoding them, checks MP4 files for a
+recognizable container signature (not full video playback), and flags missing, empty, unsupported,
+unreadable, oversized, or out-of-upload-folder files. Image inspection is limited to 12 megapixels;
+the upload UI allows at most five files of 20 MiB each. Findings are advisory only. A report with
+no attachments is shown as having no attachment provided, not as invalid.
+
+To compile and run tests:
+
+```powershell
+.\mvnw.cmd -DskipTests compile
+.\mvnw.cmd test
+```
+
 ## Building the Application
 
 To compile and package the application using Maven, run:
