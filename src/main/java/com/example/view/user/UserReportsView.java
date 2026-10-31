@@ -127,7 +127,11 @@ public class UserReportsView extends Div {
         var images = controller.getOriginalImages(reports);
         reports.forEach(r -> {
             ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()));
-            row.addClickListener(e -> new ComplaintDialog(r, controller).open());
+            row.addClickListener(e -> {
+                ComplaintDialog dialog = new ComplaintDialog(r, controller);
+                me.ifPresent(u -> dialog.setResident(u, this::refreshList));
+                dialog.open();
+            });
             listContainer.add(row);
         });
     }

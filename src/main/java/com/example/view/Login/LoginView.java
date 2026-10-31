@@ -102,10 +102,16 @@ public class LoginView extends Div {
         Button guest = new Button("Back to public view", e -> UI.getCurrent().navigate(""));
         guest.addClassName("login-forgot");
 
+        Button register = new Button("Create account", e -> new RegisterDialog(auth, user -> {
+            session.login(user);
+            enterApp();
+        }).open());
+        register.addClassName("login-forgot");
+
         Div form = new Div(email, password);
         form.addClassName("login-form");
 
-        Div actions = new Div(login, forgot, guest);
+        Div actions = new Div(login, forgot, register, guest);
         actions.addClassName("login-actions");
 
         Div card = new Div(heading, form, actions);

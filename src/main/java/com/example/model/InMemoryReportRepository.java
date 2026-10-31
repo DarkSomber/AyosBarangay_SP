@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Repository;
 
 /**
- * Sample data, kept in memory (lost on restart).
- * TEMP-DEV: active while the database is off. To go back to MySQL, remove @Repository
- * from this class and restore @Repository on JdbcReportRepository.
+ * unused Fallback (Soon to be deleted)
  */
-@Repository
+
 public class InMemoryReportRepository implements ReportRepository {
 
     private final List<Report> reports = new ArrayList<>(List.of(
@@ -55,6 +52,34 @@ public class InMemoryReportRepository implements ReportRepository {
                 report.deletedAt(), report.deletionReason());
         reports.add(stored);
         return stored;
+    }
+
+    @Override
+    public synchronized boolean updateDetails(int reportId, int userId, String description,
+                                              String address, LocalDateTime now) {
+        return replaceIfOwnedAndOpen(reportId, userId, r -> new Report(r.reportId(), r.userId(),
+                description, r.status(), r.dateSubmitted(), now, address, r.latitude(), r.longitude(),
+                r.reviewedBy(), r.reviewDate(), r.deletedAt(), r.deletionReason()));
+    }
+
+    @Override
+    public synchronized boolean softDelete(int reportId, int userId, String reason, LocalDateTime now) {
+        return replaceIfOwnedAndOpen(reportId, userId, r -> new Report(r.reportId(), r.userId(),
+                r.description(), r.status(), r.dateSubmitted(), now, r.address(), r.latitude(),
+                r.longitude(), r.reviewedBy(), r.reviewDate(), now, reason));
+    }
+
+    private boolean replaceIfOwnedAndOpen(int reportId, int userId,
+                                          java.util.function.UnaryOperator<Report> change) {
+        for (int i = 0; i < reports.size(); i++) {
+            Report r = reports.get(i);
+            if (r.reportId() == reportId && r.userId() == userId && !r.isDeleted()
+                    && (r.status() == ReportStatus.PENDING || r.status() == ReportStatus.UNDER_REVIEW)) {
+                reports.set(i, change.apply(r));
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

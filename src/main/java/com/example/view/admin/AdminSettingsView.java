@@ -1,5 +1,6 @@
 package com.example.view.admin;
 
+import com.example.config.BarangayInfo;
 import com.example.controller.AuthController;
 import com.example.controller.SessionController;
 import com.example.view.ChangePasswordDialog;
@@ -19,8 +20,10 @@ public class AdminSettingsView extends Div {
 
     private final AuthController auth;
     private final SessionController session;
+    private final BarangayInfo info;
 
-    public AdminSettingsView(AuthController auth, SessionController session) {
+    public AdminSettingsView(AuthController auth, SessionController session, BarangayInfo info) {
+        this.info = info;
         this.auth = auth;
         this.session = session;
         addClassName("admin-page");
@@ -31,7 +34,7 @@ public class AdminSettingsView extends Div {
         Button editPassword = actionButton("Edit",
                 () -> new ChangePasswordDialog(auth, session).open());
         Button viewDetails = actionButton("View",
-                () -> new BarangayInfoDialog().open());
+                () -> new BarangayInfoDialog(info).open());
 
         Checkbox notifications = new Checkbox();
         notifications.setAriaLabel("New report notifications");

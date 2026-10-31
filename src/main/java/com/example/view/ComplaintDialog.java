@@ -8,8 +8,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
+import org.springframework.dao.DataAccessException;
 import org.slf4j.LoggerFactory;
 
 import com.example.ai.ReportAnalysis;
@@ -21,11 +23,16 @@ import com.example.duplicate.DuplicateReportService;
 import com.example.media.AttachmentAssessment;
 import com.example.media.AttachmentCheckService;
 import com.example.model.Report;
+import com.example.model.ReportHistory;
 import com.example.model.ReportImage;
+import com.example.model.ReportStatus;
+import com.example.model.User;
 import com.example.spam.ReportSpamCheckService;
 import com.example.spam.SpamAssessment;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H4;
@@ -33,6 +40,9 @@ import com.vaadin.flow.component.html.IFrame;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.server.StreamResource;
 
 public class ComplaintDialog extends Dialog {
@@ -45,6 +55,11 @@ public class ComplaintDialog extends Dialog {
     private final DuplicateReportService duplicateReportService;
     private final ReportSpamCheckService spamCheckService;
     private final AttachmentCheckService attachmentCheckService;
+    private final Report report;
+    private final Div outcome = new Div();
+    private final Div adminInfo = new Div();
+    private User reviewer;
+    private Runnable onStatusChanged;
 
     public ComplaintDialog(Report report, ReportController controller) {
         this(report, controller, null, null, null, null);
@@ -74,6 +89,8 @@ public class ComplaintDialog extends Dialog {
                            ReportSpamCheckService spamCheckService,
                            AttachmentCheckService attachmentCheckService) {
         this.controller = controller;
+        this.report = report;
+        outcome.addClassNames("complaint-duplicate-section", "complaint-outcome");
         this.analysisService = analysisService;
         this.duplicateReportService = duplicateReportService;
         this.spamCheckService = spamCheckService;
@@ -88,6 +105,124 @@ public class ComplaintDialog extends Dialog {
             root.addClassName("complaint-root-with-analysis");
         }
         add(root);
+        showOutcome();
+    }
+
+    /** Admin: extra lines under the date (resident, reviewer). Call before open(). */
+    public void setAdminInfo(String... lines) {
+        adminInfo.removeAll();
+        for (String line : lines) {
+            adminInfo.add(new Div(new Span(line)));
+        }
+    }
+
+    /** Admin tools: lets this dialog change the report's status. Call before open(). */
+    public void setReviewer(User admin, Runnable onStatusChanged) {
+        this.reviewer = admin;
+        this.onStatusChanged = onStatusChanged;
+        showOutcome();
+    }
+
+    /** Resident tools: Edit and Cancel buttons for their own open report. Call before open(). */
+    public void setResident(User resident, Runnable onChanged) {
+        if (!controller.canManage(resident, report)) {
+            return;
+        }
+        Button edit = new Button("Edit", VaadinIcon.EDIT.create(), e -> {
+            close();
+            new EditReportDialog(controller, resident, report, onChanged).open();
+        });
+        Button cancel = new Button("Cancel report", VaadinIcon.TRASH.create(), e -> confirmCancel(resident, onChanged));
+        cancel.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        outcome.add(new Div(edit, cancel));
+    }
+
+    private void confirmCancel(User resident, Runnable onChanged) {
+        ConfirmDialog confirm = new ConfirmDialog();
+        confirm.setHeader("Cancel report #" + report.reportId() + "?");
+        confirm.setText("This report will be removed from your list and the barangay will no longer review it.");
+        confirm.setCancelable(true);
+        confirm.setCancelText("Keep report");
+        confirm.setConfirmText("Cancel report");
+        confirm.setConfirmButtonTheme("error primary");
+        confirm.addConfirmListener(e -> {
+            try {
+                controller.cancelReport(resident, report);
+                Notification.show("Report cancelled.");
+                close();
+                onChanged.run();
+            } catch (IllegalArgumentException ex) {
+                Notification.show(ex.getMessage());
+            } catch (DataAccessException ex) {
+                log.error("Could not cancel report {}", report.reportId(), ex);
+                Notification.show("Could not cancel the report. Please try again.");
+            }
+        });
+        confirm.open();
+    }
+
+    /** Status history and resolution for everyone; admins also get the status form. */
+    private void showOutcome() {
+        outcome.removeAll();
+        outcome.add(new H4("Status history"));
+        var history = controller.getHistory(report.reportId());
+        if (history.isEmpty()) {
+            outcome.add(new Span("No status changes yet."));
+        }
+        for (ReportHistory h : history) {
+            String from = h.oldStatus() == null ? "" : h.oldStatus().getLabel() + " -> ";
+            outcome.add(new Span(from + h.newStatus().getLabel() + "  |  " + h.changedAt().format(DATE_FMT)));
+            if (reviewer != null && h.changeReason() != null) {
+                outcome.add(new Span("Note: " + h.changeReason()));
+            }
+        }
+        controller.getResolution(report.reportId()).ifPresent(r -> outcome.add(analysisField(
+                r.isUnresolvable() ? "Why it can't be resolved" : "Resolution",
+                r.isUnresolvable() ? r.unresolvableReason() : r.resolutionDescription())));
+        if (reviewer != null && ReportController.OPEN_STATUSES.contains(report.status())) {
+            outcome.add(buildStatusForm());
+        }
+    }
+
+    private Div buildStatusForm() {
+        Select<ReportStatus> next = new Select<>();
+        next.setLabel("Change status to");
+        next.setItems(Stream.of(ReportStatus.UNDER_REVIEW, ReportStatus.RESOLVED, ReportStatus.UNRESOLVABLE)
+                .filter(s -> s != report.status()).toList());
+        next.setItemLabelGenerator(ReportStatus::getLabel);
+
+        TextArea text = new TextArea(textLabel(null));
+        text.setWidthFull();
+        text.setMaxLength(2000);
+        next.addValueChangeListener(e -> text.setLabel(textLabel(e.getValue())));
+
+        Button save = new Button("Update status", e -> {
+            try {
+                controller.updateStatus(report, reviewer, next.getValue(), text.getValue());
+                Notification.show("Report #" + report.reportId() + " updated.");
+                close();
+                if (onStatusChanged != null) {
+                    onStatusChanged.run();
+                }
+            } catch (IllegalArgumentException ex) {
+                Notification.show(ex.getMessage());
+            } catch (DataAccessException ex) {
+                log.error("Could not update report {}", report.reportId(), ex);
+                Notification.show("Could not save the change. Please try again.");
+            }
+        });
+        save.addClassName("primary");
+        return new Div(next, text, save);
+    }
+
+    private static String textLabel(ReportStatus status) {
+        if (status == ReportStatus.RESOLVED) {
+            return "How was it resolved? (required)";
+        }
+        if (status == ReportStatus.UNRESOLVABLE) {
+            return "Why can't it be resolved? (required)";
+        }
+        return "Note (optional)";
     }
 
     private Div buildTopBar(Report report) {
@@ -171,7 +306,8 @@ public class ComplaintDialog extends Dialog {
             }
         }
 
-        Div left = new Div(date, details, photo);
+        adminInfo.addClassName("complaint-date");
+        Div left = new Div(date, adminInfo, details, photo, outcome);
         if (analysisService != null) {
             left.add(buildAnalysisSection(report));
         }

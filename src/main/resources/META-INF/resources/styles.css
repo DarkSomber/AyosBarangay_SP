@@ -33,10 +33,8 @@ vaadin-button.menu-button {
 }
 
 .dashboard-panel {
-  background: white;
   margin: 0 20px 20px 20px;
   padding: 16px;
-  border-radius: 6px;
   flex: 1;
   overflow-y: auto;
   box-sizing: border-box;
@@ -82,18 +80,14 @@ vaadin-button.filter-chip.active {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #e6e6e6;
   padding: 10px;
-  border-radius: 4px;
   cursor: pointer;
 }
 
 .report-thumb {
-  background: #8a8a8a;
   width: 84px;
   height: 60px;
   flex-shrink: 0;
-  border-radius: 4px;
 }
 
 .report-text {
@@ -147,9 +141,6 @@ vaadin-button.create-report-button {
   right: 32px;
   bottom: 32px;
   border-radius: 999px;
-  background: white;
-  color: #222;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 10;
 }
 
@@ -388,7 +379,6 @@ vaadin-button.complaint-close {
   display: flex;
   min-height: 100vh;
   box-sizing: border-box;
-  background: #d9d9d9;
 }
 
 .admin-shell.collapsed .admin-sidebar {
@@ -402,7 +392,12 @@ vaadin-button.complaint-close {
   flex-shrink: 0;
   box-sizing: border-box;
   padding: 20px 22px;
-  background: #969696;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 .admin-avatar {
@@ -416,28 +411,14 @@ vaadin-button.complaint-close {
 .admin-nav {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 vaadin-button.admin-nav-button,
 vaadin-button.admin-login-button {
   justify-content: flex-start;
-  height: 56px;
   margin: 0;
-  border-radius: 0;
-  background: #d9d9d9;
-  color: #222;
   cursor: pointer;
-}
-
-vaadin-button.admin-nav-button.active {
-  background: #575553;
-  color: white;
-}
-
-vaadin-button.admin-login-button {
-  justify-content: center;
-  margin-top: auto;
 }
 
 .admin-main {
@@ -831,16 +812,7 @@ vaadin-button.forgot-link {
 }
 
 /* ---------- User screens ---------- */
-/* Append to styles.css. The user layout reuses the admin-* classes; only the sidebar Logout is new. */
-
-vaadin-button.sidebar-logout {
-  align-self: flex-start;
-  margin: auto 0 0 0;
-  border-radius: 0;
-  background: #e6e6e6;
-  color: #222;
-  cursor: pointer;
-}
+/* The user layout reuses the admin-* classes. */
 
 /* Circle button: fixed in the top-left corner so it works with the sidebar open or closed */
 vaadin-button.user-menu-button {
@@ -1190,6 +1162,7 @@ vaadin-button.barangay-close { align-self: flex-end; margin-top: auto; backgroun
   --mint: #8de8c6;
   --chip: #a9dc90;
   --row: #efffd0;
+  --radius: 8px; /* boxes: buttons, panel, rows, thumbnails. Pills (chips, sort, Create Report) stay 999px */
 }
 
 .admin-shell {
@@ -1199,27 +1172,17 @@ vaadin-button.barangay-close { align-self: flex-end; margin-top: auto; backgroun
 
 /* ----- Sidebar ----- */
 
-.admin-sidebar {
-  background: linear-gradient(90deg, #2a7243 0%, #2f7a48 70%, #4a8f57 100%);
-  border-right: 1px solid var(--forest);
-}
-
 .admin-avatar {
   background: #a3a3a3;
   border: 0;
   object-fit: cover; /* for the real image later */
 }
 
-.admin-nav {
-  gap: 12px;
-}
-
 vaadin-button.admin-nav-button,
-vaadin-button.admin-login-button,
-vaadin-button.sidebar-logout {
+vaadin-button.admin-login-button {
   height: 44px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: rgba(190, 232, 160, 0.85);
   color: var(--forest);
   font-size: 1rem;
@@ -1277,7 +1240,7 @@ vaadin-button.menu-button {
 .dashboard-panel {
   background: var(--cream);
   border: 1px solid var(--forest);
-  border-radius: 2px;
+  border-radius: var(--radius);
 }
 
 /* ----- Filter chips + sort ----- */
@@ -1309,13 +1272,18 @@ vaadin-button.filter-chip.active {
 .report-row {
   background: var(--row);
   border: 1px solid var(--forest);
-  border-radius: 2px;
+  border-radius: var(--radius);
 }
 
 .report-thumb {
-  background: #fff;
+  background: var(--chip);
   border: 1px solid var(--forest);
-  border-radius: 2px;
+  border-radius: var(--radius);
+}
+
+/* No photo: green box with a small image icon instead of an empty white one */
+.report-thumb:not(.has-image) {
+  background: var(--chip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312290f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' opacity='.45'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='9' cy='10' r='1.6'/%3E%3Cpath d='M21 16l-5-5-8 9'/%3E%3C/svg%3E") center / 28px no-repeat;
 }
 
 .report-title {
@@ -1357,14 +1325,13 @@ vaadin-button.menu-button {
 }
 
 /* Logout / Log in at the bottom of the sidebar: dark fill, light outline */
-vaadin-button.admin-login-button,
-vaadin-button.sidebar-logout {
+vaadin-button.admin-login-button {
   width: 100%;
   height: 40px;
   margin: auto 0 0 0;
   justify-content: center;
   border: 1px solid #bfe3a0;
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: #2a5a2c;
   color: #f4ffd8;
   font-size: 1rem;
@@ -1412,7 +1379,7 @@ vaadin-button.settings-logout {
   align-self: flex-end;
   margin-top: auto;
   border: 1px solid #bfe3a0;
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: #2a5a2c;
   color: #f4ffd8;
 }
@@ -1592,4 +1559,28 @@ vaadin-button.emergency-call-circle {
   font-size: 1.2rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+/* Report status history + admin status form inside the report dialog */
+.complaint-outcome {
+  max-height: 320px;
+}
+
+/* AI Summary page */
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+}
+
+.summary-card h4 {
+  margin: 0;
+}
+
+.summary-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

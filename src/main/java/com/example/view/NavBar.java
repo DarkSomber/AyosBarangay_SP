@@ -23,8 +23,8 @@ import com.vaadin.flow.server.VaadinSession;
  * Its items depend on who is logged in:
  *
  *   guest : Public Dashboard                                   | Log in
- *   user  : Public Dashboard, Settings, View Submitted Reports | Logout
- *   admin : Public Dashboard, Settings, Unresolved Reports,
+ *   user  : Public Dashboard, Settings, My Reports, Emergency  | Logout
+ *   admin : Public Dashboard, Settings, Reports,
  *           AI Summary                                         | Logout
  *
  * The page that owns the NavBar calls highlight(path) to mark the current item,
@@ -60,12 +60,12 @@ public class NavBar extends Div {
 
         if (session.isAdmin()) {
             addNavButton(nav, "Settings", "admin/settings", AdminSettingsView.class);
-            addNavButton(nav, "Unresolved Reports", "admin/reports", AdminReportsView.class);
+            addNavButton(nav, "Reports", "admin/reports", AdminReportsView.class);
             addNavButton(nav, "AI Summary", "admin/summary", AdminSummaryView.class);
         } else if (session.isLoggedIn()) {
             addNavButton(nav, "Settings", "user/settings", UserSettingsView.class);
-            addNavButton(nav, "View Submitted Reports", "user/reports", UserReportsView.class);
-            addNavButton(nav, "Emergency Button", "user/emergency", UserEmergencyView.class);
+            addNavButton(nav, "My Reports", "user/reports", UserReportsView.class);
+            addNavButton(nav, "Emergency", "user/emergency", UserEmergencyView.class);
         }
 
         add(menuSpace, nav, bottomButton());

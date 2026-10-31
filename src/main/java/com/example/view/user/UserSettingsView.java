@@ -1,8 +1,10 @@
 package com.example.view.user;
 
+import com.example.config.BarangayInfo;
 import com.example.controller.AuthController;
 import com.example.controller.SessionController;
 import com.example.view.ChangePasswordDialog;
+import com.example.view.EditDetailsDialog;
 import com.example.view.admin.BarangayInfoDialog;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
@@ -13,9 +15,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
 /**
- * User: Settings. Change user details and view barangay details.
- * Neither is wired to real data yet; each shows a message until the
- * login and user features exist. Logout lives in the sidebar (UserLayout).
+ * User: Settings. Change user details, change password and view barangay details.
+ * Logout lives in the sidebar (UserLayout).
  */
 @Route(value = "user/settings", layout = UserLayout.class)
 @PageTitle("Settings | AyosBarangay")
@@ -23,8 +24,10 @@ public class UserSettingsView extends Div {
 
     private final AuthController auth;
     private final SessionController session;
+    private final BarangayInfo info;
 
-    public UserSettingsView(AuthController auth, SessionController session) {
+    public UserSettingsView(AuthController auth, SessionController session, BarangayInfo info) {
+        this.info = info;
         this.auth = auth;
         this.session = session;
         addClassName("admin-page");
@@ -33,12 +36,15 @@ public class UserSettingsView extends Div {
 
     private Div buildPanel() {
         Button editDetails = actionButton("Edit",
+                () -> new EditDetailsDialog(auth, session).open());
+        Button editPassword = actionButton("Edit",
                 () -> new ChangePasswordDialog(auth, session).open());
         Button viewDetails = actionButton("View",
-                        () -> new BarangayInfoDialog().open());
+                        () -> new BarangayInfoDialog(info).open());
 
         Div panel = new Div(
                 settingRow("Change User Details", editDetails),
+                settingRow("Change Password", editPassword),
                 settingRow("View Barangay Details", viewDetails));
         panel.addClassNames("dashboard-panel", "settings-panel");
         return panel;
