@@ -1,6 +1,10 @@
 package com.example.view.admin;
 
+import com.example.config.BarangayInfo;
+import org.springframework.dao.DataAccessException;
+
 import com.example.controller.AuthController;
+import com.example.controller.NotificationController;
 import com.example.controller.SessionController;
 import com.example.view.ChangePasswordDialog;
 import com.vaadin.flow.component.Component;
@@ -19,8 +23,13 @@ public class AdminSettingsView extends Div {
 
     private final AuthController auth;
     private final SessionController session;
+    private final BarangayInfo info;
+    private final NotificationController notificationController;
 
-    public AdminSettingsView(AuthController auth, SessionController session) {
+    public AdminSettingsView(AuthController auth, SessionController session, BarangayInfo info,
+                             NotificationController notificationController) {
+        this.notificationController = notificationController;
+        this.info = info;
         this.auth = auth;
         this.session = session;
         addClassName("admin-page");
@@ -31,13 +40,29 @@ public class AdminSettingsView extends Div {
         Button editPassword = actionButton("Edit",
                 () -> new ChangePasswordDialog(auth, session).open());
         Button viewDetails = actionButton("View",
-                () -> new BarangayInfoDialog().open());
+                () -> new BarangayInfoDialog(info).open());
 
         Checkbox notifications = new Checkbox();
         notifications.setAriaLabel("New report notifications");
-        notifications.addValueChangeListener(e -> Notification.show(
-                e.getValue() ? "New report notifications turned on." : "New report notifications turned off."));
-        // TODO: save this preference once it has a table to live in.
+        var admin = session.getCurrentUser().orElse(null);
+        try {
+            notifications.setValue(notificationController.isEnabled(admin));
+        } catch (IllegalArgumentException | DataAccessException ex) {
+            notifications.setValue(true);
+        }
+        notifications.addValueChangeListener(e -> {
+            if (!e.isFromClient()) {
+                return;
+            }
+            try {
+                notificationController.setEnabled(admin, e.getValue());
+                Notification.show(e.getValue()
+                        ? "Saved: new report notifications are on." : "Saved: new report notifications are off.");
+            } catch (IllegalArgumentException | DataAccessException ex) {
+                notifications.setValue(!e.getValue());
+                Notification.show("Could not save the setting. Please try again.");
+            }
+        });
 
         Div panel = new Div(
                 settingRow("Change Password", editPassword),

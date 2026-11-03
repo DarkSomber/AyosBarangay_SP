@@ -1,5 +1,6 @@
 package com.example.view.admin;
 
+import com.example.config.BarangayInfo;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
@@ -7,10 +8,10 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 
-/** Read-only barangay details. Values are placeholders until a data source exists. */
+/** Read-only barangay details, taken from application.properties (ayos.barangay.*). */
 public class BarangayInfoDialog extends Dialog {
 
-    public BarangayInfoDialog() {
+    public BarangayInfoDialog(BarangayInfo info) {
         setCloseOnEsc(true);
         setCloseOnOutsideClick(true);
 
@@ -18,12 +19,12 @@ public class BarangayInfoDialog extends Dialog {
         title.addClassName("barangay-title");
 
         TextField name = new TextField("Barangay Name");
-        name.setValue("Sample Barangay"); // TODO: real value
+        name.setValue(info.name() == null ? "Not set yet" : info.name());
         name.setReadOnly(true);
         name.addClassName("barangay-field");
 
         TextArea location = new TextArea("Barangay Location");
-        location.setValue("Sample address, Quezon City"); // TODO: real value
+        location.setValue(info.location() == null ? "Not set yet" : info.location());
         location.setReadOnly(true);
         location.addClassName("barangay-field");
         location.addClassName("barangay-location");

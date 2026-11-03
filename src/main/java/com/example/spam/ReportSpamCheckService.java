@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 /**
- * Local, advisory-only checks for unmistakable low-quality report text:
+ * Local checks for unmistakable low-quality report text:
  * no readable letters or numbers, a known placeholder/keyboard mash, or a
  * run of at least eight repeated characters. Short descriptions are not
  * flagged solely for being short, and repeated reports by the same resident

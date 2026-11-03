@@ -23,8 +23,8 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 /**
  * Forgot Password flow: one dialog that swaps its panel through four steps.
  *   1. Enter email  2. Enter verification code  3. Create new password  4. Done
- * The dialog only builds the UI and checks the input. The backend calls are
- * marked TODO until the controller/auth exists.
+ * The dialog builds the UI and checks the input; PasswordResetController
+ * issues and verifies the codes. Codes are shown on screen only in dev mode.
  */
 public class ForgotPasswordDialog extends Dialog {
 
@@ -63,13 +63,15 @@ public class ForgotPasswordDialog extends Dialog {
                 Notification.show("Enter a valid email address.");
                 return;
             }
-            reset.sendResetCode(email.getValue()).ifPresent(this::showCodeNotification);
-            Notification.show("If that email is registered, a code has been sent.");
+            if (!requestCode()) {
+                return;
+            }
+            Notification.show("If that email is registered, a verification code has been generated.");
             showCodeStep();
         });
 
         showPanel("Forgot Your Password?",
-                "Please enter your email address to receive a verification code to reset your password.",
+                "Please enter your email address to get a verification code to reset your password.",
                 new Div(email),
                 submit);
     }
@@ -96,15 +98,17 @@ public class ForgotPasswordDialog extends Dialog {
         });
 
         Button resend = new Button("Resend Code", e -> {
-            reset.sendResetCode(email.getValue()).ifPresent(this::showCodeNotification);
+            if (!requestCode()) {
+                return;
+            }
             codeBoxes.forEach(TextField::clear);
             codeBoxes.get(0).focus();
-            Notification.show("If that email is registered, a new code has been sent.");
+            Notification.show("If that email is registered, a new code has been generated.");
         });
         resend.addClassName("forgot-link");
 
         showPanel("Enter Verification Code",
-                "Enter the verification code sent to your email address.",
+                "Enter the " + CODE_LENGTH + "-digit verification code.",
                 boxes,
                 verify, resend);
         codeBoxes.get(0).focus();
@@ -214,7 +218,17 @@ public class ForgotPasswordDialog extends Dialog {
         }
     }
 
-    //notification helper
+    /** Requests a code and shows it in dev mode. False if the request was refused (too soon). */
+    private boolean requestCode() {
+        try {
+            reset.sendResetCode(email.getValue()).ifPresent(this::showCodeNotification);
+            return true;
+        } catch (IllegalArgumentException ex) {
+            Notification.show(ex.getMessage());
+            return false;
+        }
+    }
+
     private void showCodeNotification(String code) {
         Notification n = new Notification();
         n.add(new Span("Your verification code: " + code + " (valid for 10 minutes)"));

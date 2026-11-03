@@ -4,23 +4,28 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.List;
 
+import com.example.controller.NotificationController;
 import com.example.controller.ReportController;
+import com.example.controller.ReportNotifier;
 import com.example.controller.SessionController;
 import com.example.model.ReportStatus;
 import com.example.model.SortOrder;
 import com.example.view.Login.LoginView;
 import com.example.view.admin.AdminReportsView;
 import com.example.view.user.UserReportsView;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.shared.Registration;
 
 
 /**
@@ -36,6 +41,9 @@ public class PublicDashboardView extends Div {
     private final ReportController controller;
     private final SessionController session;
     private final NavBar navBar;
+    private final NotificationController notifications;
+    private final ReportNotifier notifier;
+    private NotificationBell bell;
 
     private ReportStatus activeFilter = null;
     private SortOrder sortOrder = SortOrder.NEWEST;
@@ -47,9 +55,12 @@ public class PublicDashboardView extends Div {
     private Button allChip;
     private Button scopeToggle;
 
-    public PublicDashboardView(ReportController controller, SessionController session) {
+    public PublicDashboardView(ReportController controller, SessionController session,
+                               NotificationController notifications, ReportNotifier notifier) {
         this.controller = controller;
         this.session = session;
+        this.notifications = notifications;
+        this.notifier = notifier;
         this.navBar = new NavBar(session);
 
         // Same frame as the user/admin panels, with the same remembered menu state.
@@ -67,10 +78,7 @@ public class PublicDashboardView extends Div {
     }
 
     private Div buildHeader() {
-        // Placeholder circle. Later: swap for new Image("images/logo.png", "AyosBarangay")
-        // with the same "brand-logo" class, or set background-image on .brand-logo in CSS.
-        Div logo = new Div();
-        logo.addClassNames("brand-logo", "brand-logo-placeholder");
+        Image logo = BrandLogo.create("brand-logo");
 
         H3 title = new H3("AyosBarangay");
         title.addClassName("dashboard-title");
@@ -80,7 +88,27 @@ public class PublicDashboardView extends Div {
 
         Div header = new Div(brand);
         header.addClassNames("dashboard-header", "user-header");
+        // Bell for anyone logged in (admin or resident).
+        session.getCurrentUser().ifPresent(u -> {
+            bell = new NotificationBell(u.isAdmin() ? notifications.adminSource(u) : notifications.userSource(u));
+            header.add(bell);
+        });
         return header;
+    }
+
+    /** Keeps the red dot current while this page is open. */
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        if (bell == null) {
+            return;
+        }
+        UI ui = attachEvent.getUI();
+        Registration newReports = notifier.register(alert -> ui.access(bell::refresh));
+        Registration changes = notifier.registerStatus(alert -> ui.access(bell::refresh));
+        addDetachListener(e -> {
+            newReports.remove();
+            changes.remove();
+        });
     }
 
     private void goToPanel() {
@@ -208,6 +236,7 @@ public class PublicDashboardView extends Div {
     private Button buildCreateReportButton() {
         Button create = new Button("Create Report", VaadinIcon.PLUS.create());
         create.addClassName("create-report-button");
+        create.setVisible(!session.isAdmin());
         create.addClickListener(e -> {
             if (!session.isLoggedIn()) {
                 Notification.show("Please log in to submit a report.");

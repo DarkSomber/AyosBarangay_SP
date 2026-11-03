@@ -12,9 +12,11 @@ import com.example.view.admin.AdminReportsView;
 import com.example.view.user.UserReportsView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.example.view.BrandLogo;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -63,12 +65,7 @@ public class LoginView extends Div {
 
     /** Left side: logo circle + app name. */
     private Div buildBrand() {
-        // The grey circle. To use a real image later, either:
-        //   (a) set background-image on .login-logo in CSS and drop the placeholder class, or
-        //   (b) replace this Div with: Image logo = new Image("images/logo.png", "AyosBarangay logo");
-        //       logo.addClassName("login-logo");
-        Div logo = new Div();
-        logo.addClassNames("login-logo", "login-logo-placeholder");
+        Image logo = BrandLogo.create("login-logo");
 
         H1 name = new H1("AyosBarangay");
         name.addClassName("login-brand-name");
@@ -102,10 +99,16 @@ public class LoginView extends Div {
         Button guest = new Button("Back to public view", e -> UI.getCurrent().navigate(""));
         guest.addClassName("login-forgot");
 
+        Button register = new Button("Create account", e -> new RegisterDialog(auth, user -> {
+            session.login(user);
+            enterApp();
+        }).open());
+        register.addClassName("login-forgot");
+
         Div form = new Div(email, password);
         form.addClassName("login-form");
 
-        Div actions = new Div(login, forgot, guest);
+        Div actions = new Div(login, forgot, register, guest);
         actions.addClassName("login-actions");
 
         Div card = new Div(heading, form, actions);

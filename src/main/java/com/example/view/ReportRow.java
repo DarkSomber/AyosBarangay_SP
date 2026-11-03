@@ -24,10 +24,10 @@ public class ReportRow extends Div {
     public ReportRow(Report report, List<ReportImage> images) {
         addClassName("report-row");
 
-        Span desc = new Span(report.description());
+        Span desc = new Span(capitalize(report.description()));
         desc.addClassName("report-title");
 
-        Span meta = new Span(report.dateSubmitted().format(DATE_FMT) + "  |  " + report.address());
+        Span meta = new Span(report.dateSubmitted().format(DATE_FMT) + "  |  " + capitalize(report.address()));
         meta.addClassName("report-meta");
 
         Div text = new Div(desc, meta);
@@ -43,7 +43,12 @@ public class ReportRow extends Div {
         add(buildThumb(report, images), text, status);
     }
 
-    /** Gray placeholder, or the first available photo. Clicking the photo opens a larger preview. */
+    /** Display only: upper-cases the first letter so rows look consistent. */
+    private static String capitalize(String s) {
+        return s == null || s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    /** Placeholder box, or the first available photo. Clicking the photo opens a larger preview. */
     private static Div buildThumb(Report report, List<ReportImage> images) {
         Div thumb = new Div();
         thumb.addClassName("report-thumb");

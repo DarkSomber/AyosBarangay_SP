@@ -1,8 +1,10 @@
 package com.example.view;
 
+import com.example.config.BarangayInfo;
 import com.example.controller.SessionController;
 import com.example.view.Login.LoginView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
@@ -16,26 +18,20 @@ import com.vaadin.flow.component.html.Image;
 
 /**
  * User Emergency panel: quick-call buttons for emergency services, the barangay
- * and the NCMH crisis hotline. View only for now. Every Call button goes through
- * call(...), which is where the controller hook will go later.
+ * and the NCMH crisis hotline. Numbers come from BarangayInfo (blank = not set).
+ * Every Call button goes through call(...), which opens the phone dialer.
  * Uses the same frame (admin-shell + UserNavBar) as the other user screens.
  */
 @Route("user/emergency")
 @PageTitle("Emergency | AyosBarangay")
 public class UserEmergencyView extends Div implements BeforeEnterObserver {
 
-    // TODO (controller): load these from configuration or the barangay record.
-    // null = number not set yet.
-    private static final String POLICE_NUMBER = null;
-    private static final String HOTLINE_NUMBER = "911";
-    private static final String RED_CROSS_NUMBER = null;
-    private static final String BARANGAY_NUMBER = null;
-    private static final String NCMH_NUMBER = "0917-899-8727";
-
+    private final BarangayInfo info;
     private final SessionController session;
     private final NavBar navBar;
 
-    public UserEmergencyView(SessionController session) {
+    public UserEmergencyView(SessionController session, BarangayInfo info) {
+        this.info = info;
         this.session = session;
         this.navBar = new NavBar(session);
 
@@ -89,13 +85,13 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         Image redCross = new Image("ImgIcons/mdi_hospital-box.png", "Philippine Red Cross");
         redCross.addClassNames("emergency-icon", "emergency-icon-light");
 
-        Span hotlineText = new Span("911");
+        Span hotlineText = new Span(info.hotline() == null ? "Hotline" : info.hotline());
         hotlineText.addClassName("emergency-hotline-text");
 
         Div circles = new Div(
-                contact(police, "Philippine National Police", POLICE_NUMBER, false),
-                contact(hotlineText, "National Hotline", HOTLINE_NUMBER, true),
-                contact(redCross, "Philippine Red Cross", RED_CROSS_NUMBER, false));
+                contact(police, "Philippine National Police", info.police(), false),
+                contact(hotlineText, "National Hotline", info.hotline(), true),
+                contact(redCross, "Philippine Red Cross", info.redCross(), false));
         circles.addClassName("emergency-circles");
 
         Div card = new Div(title, circles);
@@ -129,7 +125,7 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         H3 title = new H3("Call the Barangay");
         title.addClassName("emergency-card-title");
 
-        Button call = new Button("Call", e -> call("the Barangay", BARANGAY_NUMBER));
+        Button call = new Button("Call", e -> call("the Barangay", info.barangayPhone()));
         call.addClassName("emergency-call-button");
 
         Div card = new Div(title, call);
@@ -140,13 +136,13 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
     private Div buildNcmhCard() {
         Span name = new Span("NCMH Crisis Hotline");
         name.addClassName("emergency-ncmh-name");
-        Span number = new Span(NCMH_NUMBER);
+        Span number = new Span(info.ncmh());
         number.addClassName("emergency-ncmh-number");
 
         Div text = new Div(name, number);
         text.addClassName("emergency-ncmh-text");
 
-        Button call = new Button("Call", e -> call("NCMH Crisis Hotline", NCMH_NUMBER));
+        Button call = new Button("Call", e -> call("NCMH Crisis Hotline", info.ncmh()));
         call.addClassName("emergency-call-circle");
 
         Div card = new Div(text, call);
@@ -156,12 +152,13 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
 
     // ---------- Actions ----------
 
-    /** Placeholder: the controller will do the real dialing later. */
+    /** Opens the phone dialer with a tel: link. */
     private void call(String name, String number) {
         if (number == null) {
             Notification.show("No number set yet for " + name + ".");
         } else {
             Notification.show("Calling " + name + " at " + number + "...");
+            UI.getCurrent().getPage().executeJs("window.location.href = $0", "tel:" + number);
         }
     }
 }

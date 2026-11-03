@@ -6,15 +6,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.format.DateTimeFormatter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 import com.example.controller.ReportController;
+import com.example.duplicate.DuplicateCandidate;
 import com.example.model.Report;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Key;
@@ -32,6 +33,8 @@ import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 public class CreateReportDialog extends Dialog {
 
     static final Path UPLOAD_DIR = UploadDir.get();
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a");
+    private static final int MAX_DUPLICATES_SHOWN = 3;
 
     private final ReportController controller;
     private final int userId;
@@ -101,6 +104,12 @@ public class CreateReportDialog extends Dialog {
         upload.addSucceededListener(e -> {
             try {
                 Path saved = saveUploadedFile(e.getFileName(), buffer.getInputStream());
+                List<String> problems = controller.attachmentProblems(List.of(saved.toString()));
+                if (!problems.isEmpty()) {
+                    Files.deleteIfExists(saved);
+                    showError(e.getFileName() + ": " + problems.get(0));
+                    return;
+                }
                 pendingMediaPaths.add(saved);
                 addMediaChip(e.getFileName());
             } catch (Exception ex) {
@@ -369,11 +378,56 @@ public class CreateReportDialog extends Dialog {
             return;
         }
 
+        List<String> mediaPaths = pendingMediaPaths.stream().map(Path::toString).toList();
+        List<String> problems = controller.validateSubmission(desc, mediaPaths);
+        if (!problems.isEmpty()) {
+            showError(problems.get(0));
+            return;
+        }
+
+        List<DuplicateCandidate> duplicates = controller.findDuplicates(userId, desc, addr, latitude, longitude);
+        if (duplicates.isEmpty()) {
+            save(desc, addr, mediaPaths);
+        } else {
+            showDuplicateWarning(duplicates, () -> save(desc, addr, mediaPaths));
+        }
+    }
+
+    private void showDuplicateWarning(List<DuplicateCandidate> duplicates, Runnable continueSubmit) {
+        Dialog warning = new Dialog();
+        warning.addClassName("cancel-warning");
+        warning.setWidth("480px");
+
+        Span text = new Span("A similar report was already submitted nearby. "
+                + "Please check it before submitting yours.");
+        text.addClassName("cancel-warning-text");
+        warning.add(text);
+
+        for (DuplicateCandidate candidate : duplicates.stream().limit(MAX_DUPLICATES_SHOWN).toList()) {
+            Report existing = candidate.report();
+            Span title = new Span("Report #" + existing.reportId() + " - " + existing.status().getLabel());
+            Span details = new Span(existing.dateSubmitted().format(DATE_FMT) + " | " + existing.address());
+            Button view = new Button("View", e -> new ComplaintDialog(existing, controller).open());
+            Div item = new Div(new Div(title), new Div(details), view);
+            warning.add(item);
+        }
+
+        Button back = new Button("Go back", e -> warning.close());
+        Button anyway = new Button("Submit anyway", e -> {
+            warning.close();
+            continueSubmit.run();
+        });
+        Div actions = new Div(anyway, back);
+        actions.addClassName("cancel-warning-actions");
+        warning.add(actions);
+        warning.open();
+    }
+
+    private void save(String desc, String addr, List<String> mediaPaths) {
+        if (submitting) return;
         submitting = true;
         try {
-            // Saves the report and all its media to the database in one transaction.
-            Report saved = controller.submitReportWithMedia(userId, desc, addr, latitude, longitude,
-                    pendingMediaPaths.stream().map(Path::toString).toList());
+            Report saved = controller.submitReportWithMedia(userId, desc, addr, latitude, longitude, mediaPaths);
 
             submitted = true;
             Notification.show(String.format(Locale.ROOT, "Report #%d submitted with %d file(s).", saved.reportId(), pendingMediaPaths.size()), 3000, Notification.Position.BOTTOM_START);
@@ -382,7 +436,7 @@ public class CreateReportDialog extends Dialog {
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         } catch (RuntimeException ex) {
-            ex.printStackTrace(); // shows the real database error in the console
+            ex.printStackTrace();
             showError("The report could not be saved. Please try again.");
         } finally {
             submitting = false;
@@ -394,7 +448,7 @@ public class CreateReportDialog extends Dialog {
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
         notification.add(new Span(message));
         notification.setPosition(Notification.Position.MIDDLE);
-        notification.setDuration(1500);
+        notification.setDuration(4000);
         notification.open();
     }
 

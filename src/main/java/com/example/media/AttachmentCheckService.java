@@ -55,6 +55,10 @@ public class AttachmentCheckService {
     }
 
     public AttachmentAssessment inspect(List<ReportImage> attachments) {
+        return inspectPaths(attachments.stream().map(ReportImage::imagePath).toList());
+    }
+
+    public AttachmentAssessment inspectPaths(List<String> attachments) {
         if (attachments.isEmpty()) {
             return new AttachmentAssessment(false, List.of(), Set.of());
         }
@@ -65,19 +69,19 @@ public class AttachmentCheckService {
             findings.add(new AttachmentFinding("Attachments",
                     "This report has " + attachments.size() + " files; the upload limit is " + MAX_FILES + "."));
         }
-        for (ReportImage attachment : attachments) {
+        for (String attachment : attachments) {
             if (inspectOne(attachment, findings)) {
-                validPaths.add(attachment.imagePath());
+                validPaths.add(attachment);
             }
         }
         return new AttachmentAssessment(true, findings, validPaths);
     }
 
-    private boolean inspectOne(ReportImage attachment, List<AttachmentFinding> findings) {
+    private boolean inspectOne(String attachment, List<AttachmentFinding> findings) {
         String fileName;
         Path path;
         try {
-            path = Paths.get(attachment.imagePath()).toAbsolutePath().normalize();
+            path = Paths.get(attachment).toAbsolutePath().normalize();
             fileName = path.getFileName().toString();
         } catch (InvalidPathException | NullPointerException exception) {
             findings.add(new AttachmentFinding("Attachment", "Stored file path is invalid."));
