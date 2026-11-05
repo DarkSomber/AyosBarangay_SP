@@ -9,7 +9,6 @@ import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-/** MySQL access for status changes, their history, and resolutions. */
 @Repository
 public class ReportReviewRepository {
 
@@ -19,7 +18,6 @@ public class ReportReviewRepository {
         this.jdbc = jdbc;
     }
 
-    /** Returns false if the report is no longer in oldStatus (someone else changed it first). */
     public boolean updateStatus(int reportId, ReportStatus oldStatus, ReportStatus newStatus, int adminId) {
         LocalDateTime now = LocalDateTime.now();
         return jdbc.sql("""
@@ -69,7 +67,6 @@ public class ReportReviewRepository {
                 .list();
     }
 
-    /** The latest resolution row for the report, if it has been closed. */
     public Optional<Resolution> findResolution(int reportId) {
         return jdbc.sql("""
                 SELECT * FROM resolutions WHERE report_id = :id

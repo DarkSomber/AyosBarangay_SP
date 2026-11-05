@@ -48,9 +48,7 @@ public class LoginView extends Div {
         }
     }
 
-    // ---------- UI building ----------
 
-    /** Decorative glass bubbles in the background (purely visual, positioned in CSS). */
     private Div buildBubbles() {
         Div bubbles = new Div();
         bubbles.addClassName("login-bubbles");
@@ -63,7 +61,6 @@ public class LoginView extends Div {
         return bubbles;
     }
 
-    /** Left side: logo circle + app name. */
     private Div buildBrand() {
         Image logo = BrandLogo.create("login-logo");
 
@@ -75,7 +72,6 @@ public class LoginView extends Div {
         return brand;
     }
 
-    /** Right side: frosted card with the form. */
     private Div buildCard() {
         H2 heading = new H2("Login");
         heading.addClassName("login-heading");
@@ -95,7 +91,6 @@ public class LoginView extends Div {
         Button forgot = new Button("Forgot password", e -> new ForgotPasswordDialog(passwordReset).open());
         forgot.addClassName("login-forgot");
 
-        // Back to the public dashboard (visitors can view reports without an account).
         Button guest = new Button("Back to public view", e -> UI.getCurrent().navigate(""));
         guest.addClassName("login-forgot");
 
@@ -116,7 +111,6 @@ public class LoginView extends Div {
         return card;
     }
 
-    /** DEV / TESTING ONLY. One-click logins for the seeded demo accounts. */
     private Div buildDevBar() {
         Span badge = new Span("DEV / TESTING ONLY");
         badge.addClassName("dev-badge");
@@ -135,7 +129,6 @@ public class LoginView extends Div {
         return bar;
     }
 
-    // ---------- Actions ----------
 
     private void attemptLogin() {
         if (email.isEmpty() || email.isInvalid() || password.isEmpty()) {

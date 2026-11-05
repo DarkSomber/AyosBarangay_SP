@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import com.example.view.UploadDir;
 
-/** Reads ayos.upload-dir once at startup and creates the folder if needed. */
 @Component
 public class UploadDirConfig {
 

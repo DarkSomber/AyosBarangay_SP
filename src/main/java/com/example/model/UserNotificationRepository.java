@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.AdminNotification.Status;
 
-/** MySQL access for resident bell notifications (user_notifications): report reviewed or status changed. */
 @Repository
 public class UserNotificationRepository {
 
@@ -32,7 +31,6 @@ public class UserNotificationRepository {
                 .update();
     }
 
-    /** Newest first; ignored ones are hidden. */
     public List<AdminNotification> findRecent(int userId) {
         return jdbc.sql("""
                 SELECT * FROM user_notifications WHERE user_id = :id AND status <> 'IGNORED'
@@ -64,7 +62,6 @@ public class UserNotificationRepository {
                 .update();
     }
 
-    /** Reuses AdminNotification as the shared bell row; its adminId holds the resident's id here. */
     private AdminNotification map(ResultSet rs, int rowNum) throws SQLException {
         return new AdminNotification(
                 rs.getInt("notification_id"),

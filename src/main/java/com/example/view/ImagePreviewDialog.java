@@ -7,7 +7,6 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.server.StreamResource;
 
-/** Enlarged view of one report photo. Closes with the X button, Escape or a click outside. */
 public class ImagePreviewDialog extends Dialog {
 
     public ImagePreviewDialog(StreamResource source, String altText) {

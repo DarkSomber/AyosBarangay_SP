@@ -9,7 +9,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 
-/** Shared by the admin and user Settings pages. */
 public class ChangePasswordDialog extends Dialog {
 
     public ChangePasswordDialog(AuthController auth, SessionController session) {
@@ -40,7 +39,7 @@ public class ChangePasswordDialog extends Dialog {
             }
             try {
                 User updated = auth.changePassword(user, current.getValue(), next.getValue());
-                session.login(updated); // keeps the session's copy of the account up to date
+                session.login(updated);
                 Notification.show("Password changed.");
                 close();
             } catch (IllegalArgumentException ex) {

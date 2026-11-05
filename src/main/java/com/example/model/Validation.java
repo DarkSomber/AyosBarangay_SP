@@ -1,12 +1,10 @@
 package com.example.model;
 
-/** Small helpers so every model checks its fields the same way. */
 final class Validation {
 
     private Validation() {
     }
 
-    /** Fails if the text is null or only spaces. Returns the trimmed text. */
     static String requireText(String value, String fieldName, int maxLength) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " is required.");
@@ -18,7 +16,6 @@ final class Validation {
         return trimmed;
     }
 
-    /** Optional text: null or blank becomes null, otherwise trimmed and length-checked. */
     static String optionalText(String value, String fieldName, int maxLength) {
         if (value == null || value.isBlank()) {
             return null;

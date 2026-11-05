@@ -13,16 +13,11 @@ import com.example.model.AdminNotificationRepository;
 import com.example.model.UserNotificationRepository;
 import com.vaadin.flow.shared.Registration;
 
-/**
- * New-report alerts. publish() saves a bell notification for every admin who has the setting on
- * (so offline admins still see it) and then tells the admin screens that are open right now.
- */
 @Component
 public class ReportNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(ReportNotifier.class);
 
-    /** What the admin toast shows. */
     public record NewReportAlert(Integer reportId, String description, String address) {
         public String message() {
             String text = description.length() > 90 ? description.substring(0, 90) + "..." : description;
@@ -30,7 +25,6 @@ public class ReportNotifier {
         }
     }
 
-    /** Tells a resident their report was reviewed or changed status. */
     public record StatusAlert(int userId, int reportId, String message) { }
 
     private final AdminNotificationRepository repository;
@@ -48,7 +42,6 @@ public class ReportNotifier {
         return () -> statusListeners.remove(listener);
     }
 
-    /** Saves a bell notification for the report's owner, then tells their open screen (if any). */
     public void publishStatusChange(StatusAlert alert) {
         try {
             userRepository.notifyUser(alert.userId(), alert.reportId(), alert.message());

@@ -14,7 +14,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.TextField;
 
-/** Lets the signed-in user change their name and email. */
 public class EditDetailsDialog extends Dialog {
 
     private static final Logger log = LoggerFactory.getLogger(EditDetailsDialog.class);

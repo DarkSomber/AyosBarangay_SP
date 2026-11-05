@@ -28,7 +28,6 @@ import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-/** Admin: all reports. Tabs split Open (Pending / Under Review) from the Archive (Resolved / Unresolvable). */
 @Route(value = "admin/reports", layout = AdminLayout.class)
 @PageTitle("Reports | AyosBarangay")
 public class AdminReportsView extends Div {
@@ -36,7 +35,6 @@ public class AdminReportsView extends Div {
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("MMM d, yyyy");
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a");
 
-    /** The tabs and the statuses each one may show. */
     private enum Section {
         OPEN("Open", ReportController.OPEN_STATUSES),
         ARCHIVE("Archive", ReportController.ARCHIVE_STATUSES),
@@ -59,7 +57,7 @@ public class AdminReportsView extends Div {
     private final SessionController session;
 
     private Section section = Section.OPEN;
-    private ReportStatus activeFilter = null; // null means "All" in the current tab
+    private ReportStatus activeFilter = null;
 
     private final Map<Tab, Section> tabs = new LinkedHashMap<>();
     private final Div filterBar = new Div();
@@ -87,7 +85,6 @@ public class AdminReportsView extends Div {
         refreshList();
     }
 
-    // ---------- UI building ----------
 
     private Tabs buildTabs() {
         Tabs bar = new Tabs();
@@ -105,7 +102,6 @@ public class AdminReportsView extends Div {
         return bar;
     }
 
-    /** Status chips for the current tab, plus the search box. */
     private void buildFilterBar() {
         filterBar.removeAll();
         filterBar.addClassName("filter-bar");
@@ -170,7 +166,6 @@ public class AdminReportsView extends Div {
         return cell;
     }
 
-    // ---------- Data ----------
 
     private void refreshList() {
         grid.setItems(controller.searchReports(section.statuses, activeFilter, search.getValue()));
@@ -178,7 +173,6 @@ public class AdminReportsView extends Div {
 
     private void openReport(ReportItem item) {
         boolean open = ReportController.OPEN_STATUSES.contains(item.report().status());
-        // AI, duplicate, spam and attachment checks are only for reports still being reviewed.
         ComplaintDialog dialog = open
                 ? new ComplaintDialog(item.report(), controller, analysisService,
                 duplicateReportService, spamCheckService, attachmentCheckService)

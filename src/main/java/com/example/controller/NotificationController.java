@@ -10,11 +10,9 @@ import com.example.model.AdminNotificationRepository;
 import com.example.model.User;
 import com.example.model.UserNotificationRepository;
 
-/** Admin notification setting and bell. Every method is admin-only and works on the caller's own data. */
 @Component
 public class NotificationController {
 
-    /** What the bell needs for one signed-in person. */
     public interface Source {
         List<AdminNotification> recent();
         int unreadCount();
@@ -42,7 +40,6 @@ public class NotificationController {
         };
     }
 
-    /** Resident bell: report reviewed / status changed. Works only on the caller's own data. */
     public Source userSource(User user) {
         if (user == null || user.isAdmin()) {
             throw new IllegalArgumentException("Only residents have report updates.");

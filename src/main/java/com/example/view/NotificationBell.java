@@ -14,7 +14,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 
-/** Bell with a red dot while there are unread notifications. Opens a list with Mark as read / Ignore. */
 public class NotificationBell extends Div {
 
     private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("MMM d, h:mm a");
@@ -34,7 +33,6 @@ public class NotificationBell extends Div {
         refresh();
     }
 
-    /** Re-checks the database and shows or hides the red dot. */
     public void refresh() {
         try {
             dot.setVisible(source.unreadCount() > 0);

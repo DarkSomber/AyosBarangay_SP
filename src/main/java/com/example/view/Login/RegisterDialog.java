@@ -17,7 +17,6 @@ import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 
-/** Sign-up form for residents. Calls onRegistered with the new account. */
 public class RegisterDialog extends Dialog {
 
     private static final Logger log = LoggerFactory.getLogger(RegisterDialog.class);
@@ -42,7 +41,7 @@ public class RegisterDialog extends Dialog {
         confirm.setWidthFull();
 
         Button create = new Button("Create account", e -> {
-            boolean emailFormatBad = email.isInvalid(); // read before resetting
+            boolean emailFormatBad = email.isInvalid();
             name.setInvalid(false);
             email.setInvalid(false);
             password.setInvalid(false);

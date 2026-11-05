@@ -12,7 +12,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-/** MySQL-backed implementation of UserRepository. */
 @Repository
 public class JdbcUserRepository implements UserRepository {
 

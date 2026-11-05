@@ -95,7 +95,7 @@ public class CreateReportDialog extends Dialog {
     private Div buildMediaZone() {
         upload.setAcceptedFileTypes("image/png", "image/jpeg", "image/jpg", "video/mp4");
         upload.setMaxFiles(5);
-        upload.setMaxFileSize(20 * 1024 * 1024); // 20 MB limit for video
+        upload.setMaxFileSize(20 * 1024 * 1024);
         upload.addClassName("create-upload");
 
         upload.setUploadButton(new Button("Add Media"));

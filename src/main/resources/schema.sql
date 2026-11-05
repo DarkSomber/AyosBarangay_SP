@@ -1,13 +1,9 @@
--- AyosBarangay schema (MySQL 8.0.16+ style; CHECK constraints are enforced from 8.0.16).
--- Create tables in this order so every foreign key points at a table that already exists.
--- Note: if Spring Boot ever runs this automatically, it needs a datasource configured.
--- Until then, run it yourself in MySQL Workbench or the mysql command line.
 
 CREATE TABLE users (
     user_id       INT AUTO_INCREMENT PRIMARY KEY,
     full_name     VARCHAR(100) NOT NULL,
     email         VARCHAR(254) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,              -- hash only, never the password
+    password_hash VARCHAR(255) NOT NULL,
     role          ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER',
     created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -23,12 +19,11 @@ CREATE TABLE reports (
     date_submitted  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     address         VARCHAR(255) NOT NULL,
-    -- Coordinates optional: a report may be filed with a text address only.
     latitude        DECIMAL(9, 6) NULL,
     longitude       DECIMAL(9, 6) NULL,
     reviewed_by     INT NULL,
     review_date     DATETIME NULL,
-    deleted_at      DATETIME NULL,                    -- soft delete: row stays, this is set
+    deleted_at      DATETIME NULL,
     deletion_reason VARCHAR(500) NULL,
     CONSTRAINT fk_reports_user     FOREIGN KEY (user_id)     REFERENCES users (user_id),
     CONSTRAINT fk_reports_reviewer FOREIGN KEY (reviewed_by) REFERENCES users (user_id),
@@ -45,7 +40,7 @@ CREATE TABLE reports (
 CREATE TABLE report_images (
     image_id    INT AUTO_INCREMENT PRIMARY KEY,
     report_id   INT NOT NULL,
-    image_path  VARCHAR(500) NOT NULL,                -- path or URL, not the file itself
+    image_path  VARCHAR(500) NOT NULL,
     image_type  ENUM('ORIGINAL', 'RESOLUTION') NOT NULL,
     uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_images_report FOREIGN KEY (report_id) REFERENCES reports (report_id),
@@ -61,7 +56,6 @@ CREATE TABLE resolutions (
     unresolvable_reason    VARCHAR(2000) NULL,
     CONSTRAINT fk_resolutions_report FOREIGN KEY (report_id) REFERENCES reports (report_id),
     CONSTRAINT fk_resolutions_admin  FOREIGN KEY (admin_id)  REFERENCES users (user_id),
-    -- Exactly one of the two texts must be filled in (resolved XOR unresolvable).
     CONSTRAINT chk_resolutions_outcome CHECK (
         (resolution_description IS NOT NULL AND unresolvable_reason IS NULL)
      OR (resolution_description IS NULL AND unresolvable_reason IS NOT NULL)),
@@ -81,7 +75,6 @@ CREATE TABLE report_history (
     INDEX idx_history_report (report_id, changed_at)
 );
 
--- OPTIONAL: remove this table (and AISummary.java) if summaries won't be saved.
 CREATE TABLE ai_summaries (
     summary_id           INT AUTO_INCREMENT PRIMARY KEY,
     generated_by         INT NOT NULL,

@@ -7,9 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
-/**
- * unused Fallback (Soon to be deleted)
- */
 
 public class InMemoryReportRepository implements ReportRepository {
 

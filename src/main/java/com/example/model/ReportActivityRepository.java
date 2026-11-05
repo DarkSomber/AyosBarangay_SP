@@ -8,7 +8,6 @@ import java.util.List;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-/** MySQL access for the report activity timeline. Insert and read only, by design. */
 @Repository
 public class ReportActivityRepository {
 

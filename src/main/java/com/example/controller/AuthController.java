@@ -15,7 +15,6 @@ public class AuthController {
 
     private final UserRepository users;
     private final PasswordEncoder encoder;
-    // Compared when the email is unknown, so response time doesn't reveal which emails exist.
     private final String dummyHash;
 
     public AuthController(UserRepository users, PasswordEncoder encoder) {
@@ -34,16 +33,15 @@ public class AuthController {
         return ok ? found : Optional.empty();
     }
 
-    /** Creates a resident account. Throws IllegalArgumentException with a message the screen can show. */
     public User register(String fullName, String email, String password) {
         if (password == null || password.length() < PasswordResetController.MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException("Password must be at least "
                     + PasswordResetController.MIN_PASSWORD_LENGTH + " characters.");
         }
-        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) { // BCrypt limit
+        if (password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
             throw new IllegalArgumentException("Password must be at most 72 bytes long.");
         }
-        User candidate = User.newResident(fullName, email, encoder.encode(password)); // validates name and email
+        User candidate = User.newResident(fullName, email, encoder.encode(password));
         if (users.findByEmail(candidate.email()).isPresent()) {
             throw new IllegalArgumentException("That email is already registered.");
         }
@@ -54,10 +52,9 @@ public class AuthController {
         }
     }
 
-    /** Changes the name and email of the signed-in user and returns the refreshed account. */
     public User updateDetails(User current, String fullName, String email) {
         User updated = new User(current.userId(), fullName, email, current.passwordHash(),
-                current.role(), current.createdAt(), LocalDateTime.now()); // validates name and email
+                current.role(), current.createdAt(), LocalDateTime.now());
         if (!updated.email().equals(current.email()) && users.findByEmail(updated.email()).isPresent()) {
             throw new IllegalArgumentException("That email is already registered.");
         }
@@ -69,9 +66,6 @@ public class AuthController {
         return users.findByEmail(updated.email()).orElseThrow();
     }
 
-    /**
-     * Checks the current password, saves the new one, and returns the refreshed user.
-     */
     public User changePassword(User current, String currentPassword, String newPassword) {
         User stored = users.findByEmail(current.email())
                 .orElseThrow(() -> new IllegalArgumentException("Account not found."));

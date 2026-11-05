@@ -76,7 +76,6 @@ public class GroqReportAnalysisProvider implements ReportAnalysisProvider {
         return complete(request, "Groq could not summarize these reports").trim();
     }
 
-    /** Sends the request and returns the reply text. */
     private String complete(ObjectNode body, String failureMessage) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new ReportAnalysisException(

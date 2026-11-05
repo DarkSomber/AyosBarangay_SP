@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.AdminNotification.Status;
 
-/** MySQL access for the admin "new report" setting (admin_settings) and bell notifications (admin_notifications). */
 @Repository
 public class AdminNotificationRepository {
 
@@ -20,7 +19,6 @@ public class AdminNotificationRepository {
         this.jdbc = jdbc;
     }
 
-    // ----- Setting (on by default when the admin has never saved it) -----
 
     public boolean isNewReportAlertsEnabled(int adminId) {
         return jdbc.sql("SELECT new_report_alerts FROM admin_settings WHERE user_id = :id")
@@ -40,9 +38,7 @@ public class AdminNotificationRepository {
                 .update();
     }
 
-    // ----- Notifications -----
 
-    /** One unread notification for every admin who has the setting on. */
     public void notifyAdmins(Integer reportId, String message) {
         jdbc.sql("""
                 INSERT INTO admin_notifications (admin_id, report_id, message, status, created_at)
@@ -56,7 +52,6 @@ public class AdminNotificationRepository {
                 .update();
     }
 
-    /** Newest first; ignored ones are hidden. */
     public List<AdminNotification> findRecent(int adminId) {
         return jdbc.sql("""
                 SELECT * FROM admin_notifications WHERE admin_id = :id AND status <> 'IGNORED'
@@ -88,7 +83,6 @@ public class AdminNotificationRepository {
                 .update();
     }
 
-    /** Marks the unread notifications for one report (or the test ones when reportId is null). */
     public void markReportRead(int adminId, Integer reportId) {
         jdbc.sql("""
                 UPDATE admin_notifications SET status = 'READ'
@@ -99,7 +93,6 @@ public class AdminNotificationRepository {
                 .update();
     }
 
-    /** Hides the unread notifications for one report (or the test ones when reportId is null). */
     public void ignoreReport(int adminId, Integer reportId) {
         jdbc.sql("""
                 UPDATE admin_notifications SET status = 'IGNORED'

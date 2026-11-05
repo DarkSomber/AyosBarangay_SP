@@ -11,7 +11,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 
-/** DEV / TESTING ONLY. Quick switching between panels and a test notification. Hidden when demo login is off. */
 public class DevToolsBar extends Div {
 
     public DevToolsBar(SessionController session, ReportNotifier notifier) {

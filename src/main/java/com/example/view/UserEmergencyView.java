@@ -16,12 +16,6 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.component.html.Image;
 
-/**
- * User Emergency panel: quick-call buttons for emergency services, the barangay
- * and the NCMH crisis hotline. Numbers come from BarangayInfo (blank = not set).
- * Every Call button goes through call(...), which opens the phone dialer.
- * Uses the same frame (admin-shell + UserNavBar) as the other user screens.
- */
 @Route("user/emergency")
 @PageTitle("Emergency | AyosBarangay")
 public class UserEmergencyView extends Div implements BeforeEnterObserver {
@@ -35,14 +29,12 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         this.session = session;
         this.navBar = new NavBar(session);
 
-        // Same frame as the other user screens, with the same remembered menu state.
         addClassName("admin-shell");
         NavBar.restore(this);
         add(NavBar.menuButton(() -> NavBar.toggle(this)), navBar, buildMain());
         navBar.highlight("user/emergency");
     }
 
-    /** Guests have no sidebar entry for this page, so send them to the login screen. */
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         if (!session.isLoggedIn()) {
@@ -50,7 +42,6 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         }
     }
 
-    // ---------- UI building ----------
 
     private Div buildMain() {
         Div main = new Div(buildHeader(), buildPanel());
@@ -73,12 +64,10 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         return panel;
     }
 
-    /** Top card: police, national hotline, Red Cross. */
     private Div buildEmergencyCard() {
         H3 title = new H3("CALL FOR EMERGENCIES");
         title.addClassName("emergency-title");
 
-        // Placeholder artwork is drawn in CSS. Swap for real images later if wanted.
         Image police = new Image("ImgIcons/map_police.png", "Philippine National Police");
         police.addClassNames("emergency-icon", "emergency-icon-light");
 
@@ -99,7 +88,6 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         return card;
     }
 
-    /** One big circle button with a caption under it. */
     private Div contact(Component icon, String name, String number, boolean red) {
         Button circle = new Button(icon, e -> call(name, number));
         circle.addClassName("emergency-circle");
@@ -114,7 +102,6 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         return wrapper;
     }
 
-    /** Bottom row: Call the Barangay, NCMH Crisis Hotline. */
     private Div buildBottomRow() {
         Div row = new Div(buildBarangayCard(), buildNcmhCard());
         row.addClassName("emergency-bottom");
@@ -150,9 +137,7 @@ public class UserEmergencyView extends Div implements BeforeEnterObserver {
         return card;
     }
 
-    // ---------- Actions ----------
 
-    /** Opens the phone dialer with a tel: link. */
     private void call(String name, String number) {
         if (number == null) {
             Notification.show("No number set yet for " + name + ".");

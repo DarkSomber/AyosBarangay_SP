@@ -3,7 +3,6 @@ package com.example.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/** Barangay details and emergency numbers, read from application.properties / hush.env. Blank = not set. */
 @Component
 public class BarangayInfo {
 

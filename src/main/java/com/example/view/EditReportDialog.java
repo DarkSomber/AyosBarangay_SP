@@ -15,7 +15,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 
-/** Lets a resident change the description and address of their own open report. */
 public class EditReportDialog extends Dialog {
 
     private static final Logger log = LoggerFactory.getLogger(EditReportDialog.class);

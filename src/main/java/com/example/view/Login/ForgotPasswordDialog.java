@@ -20,12 +20,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.example.controller.PasswordResetController;
 import com.vaadin.flow.data.value.ValueChangeMode;
 
-/**
- * Forgot Password flow: one dialog that swaps its panel through four steps.
- *   1. Enter email  2. Enter verification code  3. Create new password  4. Done
- * The dialog builds the UI and checks the input; PasswordResetController
- * issues and verifies the codes. Codes are shown on screen only in dev mode.
- */
 public class ForgotPasswordDialog extends Dialog {
 
     private static final int CODE_LENGTH = 6;
@@ -42,18 +36,16 @@ public class ForgotPasswordDialog extends Dialog {
     public ForgotPasswordDialog(PasswordResetController reset) {
         this.reset = reset;
         addClassName("forgot-dialog");
-        addThemeVariants(DialogVariant.LUMO_NO_PADDING); // the grey panel provides its own padding
+        addThemeVariants(DialogVariant.LUMO_NO_PADDING);
         setCloseOnOutsideClick(true);
         setCloseOnEsc(true);
 
-        content.addClassName("forgot-root"); // fixed size, set in styles.css
+        content.addClassName("forgot-root");
         add(content);
         showEmailStep();
     }
 
-    // ---------- Steps ----------
 
-    /** Step 1: ask for the email address. */
     private void showEmailStep() {
         email.addClassName("forgot-field");
         email.setErrorMessage("Enter a valid email address");
@@ -76,7 +68,6 @@ public class ForgotPasswordDialog extends Dialog {
                 submit);
     }
 
-    /** Step 2: six single-digit boxes. */
     private void showCodeStep() {
         Div boxes = new Div();
         boxes.addClassName("forgot-code-row");
@@ -114,7 +105,6 @@ public class ForgotPasswordDialog extends Dialog {
         codeBoxes.get(0).focus();
     }
 
-    /** Step 3: new password + confirmation. */
     private void showPasswordStep() {
         newPassword.clear();
         confirmPassword.clear();
@@ -150,15 +140,12 @@ public class ForgotPasswordDialog extends Dialog {
                 confirm);
     }
 
-    /** Step 4: confirmation. */
     private void showDoneStep() {
         Button back = primaryButton("Back to Login", e -> close());
         showPanel("Your Password Has Been Updated!", null, null, back);
     }
 
-    // ---------- Helpers ----------
 
-    /** Replaces the dialog content with one step panel. Subtitle and body may be null. */
     private void showPanel(String title, String subtitle, Component body, Component... actions) {
         H2 heading = new H2(title);
         heading.addClassName("forgot-heading");
@@ -200,13 +187,11 @@ public class ForgotPasswordDialog extends Dialog {
             box.setAllowedCharPattern("[0-9]");
             box.setAriaLabel("Digit " + (i + 1));
 
-            // typing a digit jumps to the next box
             box.addValueChangeListener(e -> {
                 if (!e.getValue().isEmpty() && index < CODE_LENGTH - 1) {
                     codeBoxes.get(index + 1).focus();
                 }
             });
-            // backspace on an empty box jumps back
             box.addKeyDownListener(Key.BACKSPACE, e -> {
                 if (box.isEmpty() && index > 0) {
                     codeBoxes.get(index - 1).focus();
@@ -218,7 +203,6 @@ public class ForgotPasswordDialog extends Dialog {
         }
     }
 
-    /** Requests a code and shows it in dev mode. False if the request was refused (too soon). */
     private boolean requestCode() {
         try {
             reset.sendResetCode(email.getValue()).ifPresent(this::showCodeNotification);

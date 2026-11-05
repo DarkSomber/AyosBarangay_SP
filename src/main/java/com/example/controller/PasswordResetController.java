@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.UserRepository;
 
-/** Forgot-password logic: issue a code, check it, then set the new password. */
 @Service
 public class PasswordResetController {
 
@@ -52,10 +51,6 @@ public class PasswordResetController {
         this.showCodes = showCodes;
     }
 
-    /**
-     * Issues a new single-use code. Returns it only when dev display is on, so the screen can show it.
-     * Requests are spaced out per email (known or not) so wrong-guess limits can't be reset at will.
-     */
     public synchronized Optional<String> sendResetCode(String email) {
         String key = normalize(email);
         Instant now = Instant.now();
@@ -78,18 +73,16 @@ public class PasswordResetController {
         return showCodes ? Optional.of(code) : Optional.empty();
     }
 
-    /** Step 2: true if the code is right and not expired. Wrong guesses are limited. */
     public boolean verifyResetCode(String email, String code) {
         return checkCode(email, code);
     }
 
-    /** Step 3: re-checks the code itself, then replaces the password hash. */
     public synchronized void resetPassword(String email, String code, String newPassword) {
         if (newPassword == null || newPassword.length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException(
                     "Password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
         }
-        if (newPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) { // BCrypt limit
+        if (newPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
             throw new IllegalArgumentException("Password must be at most 72 bytes long.");
         }
         if (!checkCode(email, code)) {

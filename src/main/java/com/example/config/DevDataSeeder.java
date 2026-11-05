@@ -17,11 +17,6 @@ import com.example.model.Role;
 import com.example.model.User;
 import com.example.model.UserRepository;
 
-/**
- * DEV ONLY. Creates a demo resident and a demo admin so the test buttons work
- * with real database rows. Never runs under the "prod" profile or when
- * ayos.dev.demo-login=false.
- */
 @Component
 @Profile("!prod")
 public class DevDataSeeder implements ApplicationRunner {

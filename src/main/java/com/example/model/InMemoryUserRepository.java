@@ -10,12 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.stereotype.Repository;
 
-/**
- * Accounts kept in memory (lost on restart). DevDataSeeder re-creates the demo
- * accounts on every start, so the demo login buttons still work.
- * TEMP-DEV: active while the database is off. To go back to MySQL, remove @Repository
- * from this class and restore @Repository on JdbcUserRepository.
- */
 public class InMemoryUserRepository implements UserRepository {
 
     private final Map<String, User> byEmail = new ConcurrentHashMap<>();

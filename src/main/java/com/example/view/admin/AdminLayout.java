@@ -66,7 +66,6 @@ public class AdminLayout extends Div implements RouterLayout, AfterNavigationObs
         return main;
     }
 
-    /** While open, shows a toast, sound and screen flash for each new report (if the setting is on). */
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         if (admin == null) {
@@ -105,18 +104,15 @@ public class AdminLayout extends Div implements RouterLayout, AfterNavigationObs
         n.open();
     }
 
-    /** Runs a notification action, closes the toast and refreshes the bell. */
     private void update(Runnable action, Notification toast) {
         try {
             action.run();
         } catch (DataAccessException ex) {
-            // the bell keeps its dot; nothing else to do
         }
         bell.refresh();
         toast.close();
     }
 
-    /** Short beep (if the browser allows audio) and a red flash over the whole page. */
     private void attention(UI ui) {
         ui.getPage().executeJs("""
                 document.body.classList.add('ayos-flash');
@@ -133,7 +129,6 @@ public class AdminLayout extends Div implements RouterLayout, AfterNavigationObs
                 """);
     }
 
-    /** Puts the current admin view inside the content area. */
     @Override
     public void showRouterLayoutContent(HasElement content) {
         if (content != null) {
@@ -141,7 +136,6 @@ public class AdminLayout extends Div implements RouterLayout, AfterNavigationObs
         }
     }
 
-    /** Highlights the sidebar button that matches the current page. */
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
         navBar.highlight(event.getLocation().getPath());

@@ -11,7 +11,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-/** MySQL access for saved AI summaries (table ai_summaries). */
 @Repository
 public class AISummaryRepository {
 

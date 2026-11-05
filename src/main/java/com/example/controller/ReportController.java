@@ -36,24 +36,17 @@ import com.example.model.User;
 import com.example.model.UserRepository;
 import com.example.spam.ReportSpamCheckService;
 
-/**
- * Handles the logic between the view and the data: filtering, sorting, submission.
- * No UI code lives here.
- */
 @Service
 public class ReportController {
 
-    /** Statuses that still need admin attention. */
     public static final List<ReportStatus> OPEN_STATUSES =
             List.of(ReportStatus.PENDING, ReportStatus.UNDER_REVIEW);
 
     private static final String CANCEL_REASON = "Cancelled by resident";
 
-    /** Statuses that are finished; the admin Archive tab lists these. */
     public static final List<ReportStatus> ARCHIVE_STATUSES =
             List.of(ReportStatus.RESOLVED, ReportStatus.UNRESOLVABLE);
 
-    /** A report with the resident who sent it and the admin who reviewed it (either may be null). */
     public record ReportItem(Report report, User resident, User reviewer) {
         public String residentName() {
             return resident == null ? "Unknown" : resident.fullName();
@@ -83,15 +76,10 @@ public class ReportController {
         this.duplicateCheck = duplicateCheck;
     }
 
-    /** @param status filter by status, or null for all reports */
     public List<Report> getReports(ReportStatus status, SortOrder order) {
         return filterAndSort(repository.findAll(), status, order);
     }
 
-    /**
-     * Reports that are still open (see OPEN_STATUSES). Used by the admin "Unresolved Reports" page.
-     * @param status narrow to one open status, or null for all open ones
-     */
     public List<Report> getOpenReports(ReportStatus status, SortOrder order) {
         List<Report> open = repository.findAll().stream()
                 .filter(r -> OPEN_STATUSES.contains(r.status()))
@@ -99,12 +87,6 @@ public class ReportController {
         return filterAndSort(open, status, order);
     }
 
-    /**
-     * Admin list/search, newest first.
-     * @param allowed statuses the current admin tab may show
-     * @param status  narrow to one status, or null for all of allowed
-     * @param query   matches description, resident name/email, or the exact report id (#12 or 12); blank = no search
-     */
     public List<ReportItem> searchReports(Collection<ReportStatus> allowed, ReportStatus status, String query) {
         List<Report> reports = repository.findAll().stream()
                 .filter(r -> !r.isDeleted())
@@ -137,7 +119,6 @@ public class ReportController {
                 .toList();
     }
 
-    /** Retrieves only the reports submitted by a specific user. */
     public List<Report> getReportsForUser(int userId, ReportStatus status, SortOrder order) {
         List<Report> userReports = repository.findAll().stream()
                 .filter(r -> r.userId() == userId)
@@ -167,7 +148,6 @@ public class ReportController {
         return saved;
     }
 
-    /** Problems that block a new submission, worded for residents. Empty means it can be submitted. */
     public List<String> validateSubmission(String description, List<String> mediaPaths) {
         List<String> problems = new ArrayList<>();
         if (description == null || description.isBlank()) {
@@ -180,12 +160,10 @@ public class ReportController {
         return problems;
     }
 
-    /** Reasons the given files are not acceptable, for checking each upload as it arrives. */
     public List<String> attachmentProblems(List<String> paths) {
         return attachmentCheck.inspectPaths(paths).findings().stream().map(f -> f.reason()).toList();
     }
 
-    /** Recent reports that look like the one about to be submitted. */
     public List<DuplicateCandidate> findDuplicates(int userId, String description, String address,
                                                    double latitude, double longitude) {
         return duplicateCheck.findCandidates(Report.submit(userId, description, address, latitude, longitude));
@@ -205,18 +183,11 @@ public class ReportController {
         return saved;
     }
 
-    /**
-     * Persists an uploaded media file against a specific report.
-     */
     public void saveReportImage(int reportId, String filePath, ImageType imageType) {
         ReportImage image = ReportImage.of(reportId, filePath, imageType);
         repository.saveImage(image);
     }
 
-    /**
-     * Admin moves an open report to Under Review, Resolved or Unresolvable.
-     * Resolved/Unresolvable need text (stored as the resolution); Under Review takes an optional note.
-     */
     @Transactional
     public void updateStatus(Report report, User admin, ReportStatus newStatus, String text) {
         if (admin == null || !admin.isAdmin()) {
@@ -237,7 +208,6 @@ public class ReportController {
 
         int reportId = report.reportId();
         int adminId = admin.userId();
-        // Built first so bad input fails before anything is written.
         ReportHistory history = ReportHistory.log(reportId, adminId, report.status(), newStatus,
                 closing ? null : note);
         Resolution resolution = !closing ? null
@@ -252,10 +222,8 @@ public class ReportController {
         if (resolution != null) {
             review.saveResolution(resolution);
         }
-        // Public timeline: only the resolution text is public; an Under Review note stays internal.
         activities.record(ReportActivity.log(reportId, ReportAction.forStatus(newStatus), report.status(),
                 newStatus, adminId, closing ? note : null));
-        // Tell the resident once the change is committed.
         ReportNotifier.StatusAlert alert = new ReportNotifier.StatusAlert(report.userId(), reportId,
                 "Your report #" + reportId + " is now " + newStatus.getLabel() + ".");
         afterCommit(() -> notifier.publishStatusChange(alert));
@@ -274,7 +242,6 @@ public class ReportController {
         });
     }
 
-    /** Resident edits the description and address of their own open report. */
     public void editReport(User resident, Report report, String description, String address) {
         requireOwnOpenReport(resident, report);
         String newDescription = requireText(description, "Description", 2000);
@@ -285,7 +252,6 @@ public class ReportController {
         }
     }
 
-    /** Resident cancels their own open report (soft delete, the row is kept). */
     public void cancelReport(User resident, Report report) {
         requireOwnOpenReport(resident, report);
         if (!repository.softDelete(report.reportId(), resident.userId(),
@@ -296,7 +262,6 @@ public class ReportController {
                 null, null, "Cancelled by the resident"));
     }
 
-    /** True if this resident may edit or cancel the report (own, not deleted, still open). */
     public boolean canManage(User resident, Report report) {
         return resident != null && !resident.isAdmin() && report.userId() == resident.userId()
                 && !report.isDeleted() && OPEN_STATUSES.contains(report.status());
@@ -323,12 +288,10 @@ public class ReportController {
         }
     }
 
-    /** Public timeline for a report (safe to show without logging in). */
     public List<ReportActivity> getActivity(int reportId) {
         return activities.forReport(reportId);
     }
 
-    /** Name of the admin behind an activity; only call this for admin viewers. */
     public String adminName(Integer adminId) {
         return activities.adminName(adminId);
     }
@@ -345,7 +308,6 @@ public class ReportController {
         return repository.findImagesByReportId(reportId);
     }
 
-    /** ORIGINAL still pictures (no videos) for the given reports, in one query, keyed by report id. */
     public Map<Integer, List<ReportImage>> getOriginalImages(List<Report> reports) {
         List<Integer> ids = reports.stream().map(Report::reportId).toList();
         if (ids.isEmpty()) {

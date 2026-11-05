@@ -28,12 +28,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 
 
-/**
- * Public Dashboard: the start page of the app (route ""). Anyone can view
- * reports; submitting one needs a logged-in resident. It uses the same NavBar
- * and frame as the user and admin panels, which is also where Log in and
- * Logout live. The view builds the UI and forwards user actions to the controller.
- */
 @Route("")
 @PageTitle("AyosBarangay")
 public class PublicDashboardView extends Div {
@@ -63,7 +57,6 @@ public class PublicDashboardView extends Div {
         this.notifier = notifier;
         this.navBar = new NavBar(session);
 
-        // Same frame as the user/admin panels, with the same remembered menu state.
         addClassName("admin-shell");
         NavBar.restore(this);
         add(NavBar.menuButton(() -> NavBar.toggle(this)), navBar, buildMain());
@@ -88,7 +81,6 @@ public class PublicDashboardView extends Div {
 
         Div header = new Div(brand);
         header.addClassNames("dashboard-header", "user-header");
-        // Bell for anyone logged in (admin or resident).
         session.getCurrentUser().ifPresent(u -> {
             bell = new NotificationBell(u.isAdmin() ? notifications.adminSource(u) : notifications.userSource(u));
             header.add(bell);
@@ -96,7 +88,6 @@ public class PublicDashboardView extends Div {
         return header;
     }
 
-    /** Keeps the red dot current while this page is open. */
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         if (bell == null) {
@@ -125,7 +116,6 @@ public class PublicDashboardView extends Div {
         return devBar;
     }
 
-    /** DEV / TESTING ONLY. One-click test logins that jump straight into each panel. */
     private void refreshDevBar() {
         devBar.removeAll();
         devBar.setVisible(session.isDemoLoginEnabled());

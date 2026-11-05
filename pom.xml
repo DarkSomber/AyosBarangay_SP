@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- Project from https://start.vaadin.com/768ddc75-4dfd-4f72-ae69-de5ffe53ec01 -->
     <groupId>com.example</groupId>
     <artifactId>app</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -34,7 +33,6 @@
     <dependencies>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <!-- Replace artifactId with vaadin-core to use only free components -->
             <artifactId>vaadin</artifactId>
         </dependency>
         <dependency>
@@ -47,7 +45,6 @@
             <artifactId>vaadin-spring-boot-starter</artifactId>
         </dependency>
 
-        <!-- Database: Spring JDBC + MySQL driver -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
@@ -62,7 +59,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Password hashing (BCrypt) for login -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
@@ -124,7 +120,6 @@
     </repositories>
 
     <pluginRepositories>
-        <!-- Central first to avoid unnecessary lookups from maven.vaadin.com for all artifacts -->
         <pluginRepository>
             <id>central</id>
             <url>https://repo.maven.apache.org/maven2</url>

@@ -7,7 +7,6 @@ import java.util.function.Function;
 import com.example.model.ReportActivity;
 import com.vaadin.flow.component.html.Div;
 
-/** Vertical timeline of a report's activity. Pass adminName only for admin viewers; the public sees "Barangay admin". */
 public final class ActivityTimeline {
 
     private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a");

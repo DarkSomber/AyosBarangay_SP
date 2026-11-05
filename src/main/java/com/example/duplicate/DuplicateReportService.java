@@ -15,11 +15,6 @@ import org.springframework.stereotype.Service;
 import com.example.model.Report;
 import com.example.model.ReportRepository;
 
-/**
- * Finds advisory duplicate candidates from reports submitted within the last
- * 30 days. A match requires a high description similarity and either a matching
- * normalized address or coordinates within 250 metres.
- */
 @Service
 public class DuplicateReportService {
 
@@ -120,7 +115,6 @@ public class DuplicateReportService {
     }
 
     private boolean coordinatesUnavailable(Report report) {
-        // The current model uses primitive coordinates; (0, 0) is its missing-value sentinel.
         return report.latitude() == 0 && report.longitude() == 0;
     }
 }

@@ -8,7 +8,6 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 
-/** Read-only barangay details, taken from application.properties (ayos.barangay.*). */
 public class BarangayInfoDialog extends Dialog {
 
     public BarangayInfoDialog(BarangayInfo info) {

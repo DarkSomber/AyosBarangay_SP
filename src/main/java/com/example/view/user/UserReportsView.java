@@ -20,11 +20,6 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-/**
- * User: View Submitted Reports. Shows only the reports submitted by the logged-in
- * user (filter chips, sort, report rows) plus the Create Report button.
- * The view builds the UI and forwards actions to the controller.
- */
 @Route(value = "user/reports", layout = UserLayout.class)
 @PageTitle("My Reports | AyosBarangay")
 public class UserReportsView extends Div {
@@ -32,7 +27,7 @@ public class UserReportsView extends Div {
     private final ReportController controller;
     private final SessionController session;
 
-    private ReportStatus activeFilter = null; // null means "All"
+    private ReportStatus activeFilter = null;
     private SortOrder sortOrder = SortOrder.NEWEST;
 
     private final Div listContainer = new Div();
@@ -47,7 +42,6 @@ public class UserReportsView extends Div {
         refreshList();
     }
 
-    // ---------- UI building ----------
 
     private Div buildPanel() {
         listContainer.addClassName("report-list");
@@ -107,7 +101,6 @@ public class UserReportsView extends Div {
         return create;
     }
 
-    // ---------- Rendering ----------
 
     private void refreshList() {
         listContainer.removeAll();

@@ -1,10 +1,5 @@
 CREATE DATABASE  IF NOT EXISTS `ayosbarangay` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `ayosbarangay`;
--- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
---
--- Host: 127.0.0.1    Database: ayosbarangay
--- ------------------------------------------------------
--- Server version	8.0.45
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -17,9 +12,6 @@ USE `ayosbarangay`;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
---
--- Table structure for table `resolutions`
---
 
 DROP TABLE IF EXISTS `resolutions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -40,9 +32,6 @@ CREATE TABLE `resolutions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `resolutions`
---
 
 LOCK TABLES `resolutions` WRITE;
 /*!40000 ALTER TABLE `resolutions` DISABLE KEYS */;
@@ -58,4 +47,3 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-22 21:46:37

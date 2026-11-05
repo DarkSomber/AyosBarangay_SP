@@ -11,7 +11,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-/** MySQL-backed implementation of ReportRepository. */
 @Repository
 public class JdbcReportRepository implements ReportRepository {
 

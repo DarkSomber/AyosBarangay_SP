@@ -64,7 +64,6 @@ public class UserLayout extends Div implements RouterLayout, AfterNavigationObse
         return main;
     }
 
-    /** While open, shows a toast when one of this resident's reports is reviewed or changes status. */
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         if (resident == null) {
@@ -90,7 +89,6 @@ public class UserLayout extends Div implements RouterLayout, AfterNavigationObse
         addDetachListener(e -> reg.remove());
     }
 
-    /** Puts the current user view inside the content area. */
     @Override
     public void showRouterLayoutContent(HasElement content) {
         if (content != null) {
@@ -98,7 +96,6 @@ public class UserLayout extends Div implements RouterLayout, AfterNavigationObse
         }
     }
 
-    /** Highlights the sidebar button that matches the current page. */
     @Override
     public void afterNavigation(AfterNavigationEvent event) {
         navBar.highlight(event.getLocation().getPath());

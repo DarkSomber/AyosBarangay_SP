@@ -27,11 +27,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.ReportImage;
 
-/**
- * Performs bounded, advisory checks on stored report attachments. The current
- * upload UI permits five files of up to 20 MiB each, with PNG, JPEG, and MP4
- * extensions.
- */
 @Service
 public class AttachmentCheckService {
 

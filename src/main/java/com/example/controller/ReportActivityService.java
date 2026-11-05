@@ -12,7 +12,6 @@ import com.example.model.ReportActivityRepository;
 import com.example.model.User;
 import com.example.model.UserRepository;
 
-/** Records and reads the public report timeline. A timeline problem never blocks the report itself. */
 @Service
 public class ReportActivityService {
 
@@ -26,7 +25,6 @@ public class ReportActivityService {
         this.users = users;
     }
 
-    /** Called by controllers only (after their own admin/owner checks); there is no screen that edits entries. */
     public void record(ReportActivity activity) {
         try {
             repository.save(activity);
@@ -45,7 +43,6 @@ public class ReportActivityService {
         }
     }
 
-    /** Admin name for the admin-only view of the timeline. */
     public String adminName(Integer adminId) {
         if (adminId == null) {
             return "Barangay admin";

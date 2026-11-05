@@ -108,7 +108,6 @@ public class ComplaintDialog extends Dialog {
         showOutcome();
     }
 
-    /** Admin: extra lines under the date (resident, reviewer). Call before open(). */
     public void setAdminInfo(String... lines) {
         adminInfo.removeAll();
         for (String line : lines) {
@@ -116,14 +115,12 @@ public class ComplaintDialog extends Dialog {
         }
     }
 
-    /** Admin tools: lets this dialog change the report's status. Call before open(). */
     public void setReviewer(User admin, Runnable onStatusChanged) {
         this.reviewer = admin;
         this.onStatusChanged = onStatusChanged;
         showOutcome();
     }
 
-    /** Resident tools: Edit and Cancel buttons for their own open report. Call before open(). */
     public void setResident(User resident, Runnable onChanged) {
         if (!controller.canManage(resident, report)) {
             return;
@@ -161,7 +158,6 @@ public class ComplaintDialog extends Dialog {
         confirm.open();
     }
 
-    /** Status history and resolution for everyone; admins also get the status form. */
     private void showOutcome() {
         outcome.removeAll();
         outcome.add(new H4("Activity history"));
@@ -271,7 +267,6 @@ public class ComplaintDialog extends Dialog {
 
                 try {
                     Path p = Paths.get(path);
-                    // Read file into memory to avoid locking issues and path problems
                     byte[] fileBytes = Files.readAllBytes(p);
 
                     StreamResource resource = new StreamResource(
@@ -290,7 +285,6 @@ public class ComplaintDialog extends Dialog {
                         videoFrame.getElement().setAttribute("allow", "autoplay");
                         photo.add(videoFrame);
                     } else {
-                        // Assume image
                         String mimeType = lowerPath.endsWith(".png") ? "image/png" : "image/jpeg";
                         resource.setContentType(mimeType);
 
@@ -300,7 +294,6 @@ public class ComplaintDialog extends Dialog {
                         photo.add(pic);
                     }
                 } catch (Exception e) {
-                    // If file is missing or unreadable, just skip it
                     log.warn("Skipping unreadable attachment {} for report {}",
                             img.imageId(), report.reportId());
                 }

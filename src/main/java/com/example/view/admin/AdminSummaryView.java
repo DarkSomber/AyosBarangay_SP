@@ -20,7 +20,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-/** Admin: generate and reopen AI summaries of reports in a date range. */
 @Route(value = "admin/summary", layout = AdminLayout.class)
 @PageTitle("AI Summary | AyosBarangay")
 public class AdminSummaryView extends Div {

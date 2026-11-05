@@ -3,22 +3,6 @@ package com.example.model;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * OPTIONAL. A saved AI summary so admins can reopen it without regenerating.
- * Table: ai_summaries
- *
- * Per the design, the summary text lists resolved issues first, then unresolved ones.
- * That ordering is decided when the text is generated, not by this class.
- * Delete this file and the ai_summaries table if you decide not to save summaries.
- *
- * @param summaryId          primary key, null until saved
- * @param generatedBy        the admin who generated it (FK to users)
- * @param summaryContent     the generated text
- * @param reportCount        how many reports were included
- * @param summaryPeriodStart first day covered
- * @param summaryPeriodEnd   last day covered
- * @param generatedAt        when it was generated
- */
 public record AISummary(Integer summaryId, int generatedBy, String summaryContent, int reportCount,
                         LocalDate summaryPeriodStart, LocalDate summaryPeriodEnd,
                         LocalDateTime generatedAt) {

@@ -14,10 +14,6 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
-/**
- * User: Settings. Change user details, change password and view barangay details.
- * Logout lives in the sidebar (UserLayout).
- */
 @Route(value = "user/settings", layout = UserLayout.class)
 @PageTitle("Settings | AyosBarangay")
 public class UserSettingsView extends Div {

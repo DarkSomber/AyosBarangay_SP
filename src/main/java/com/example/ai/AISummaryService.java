@@ -14,7 +14,6 @@ import com.example.model.Report;
 import com.example.model.SortOrder;
 import com.example.model.User;
 
-/** Builds an AI summary of the reports submitted in a date range and saves it. */
 @Service
 public class AISummaryService {
 
@@ -32,7 +31,6 @@ public class AISummaryService {
         this.repository = repository;
     }
 
-    /** Blocking (calls the AI provider); run it off the UI thread. */
     public AISummary generate(User admin, LocalDate start, LocalDate end) {
         if (start == null || end == null || end.isBefore(start)) {
             throw new IllegalArgumentException("Choose a valid date range.");
