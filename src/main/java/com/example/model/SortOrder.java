@@ -2,7 +2,8 @@ package com.example.model;
 
 public enum SortOrder {
     NEWEST("Sort by: newest"),
-    OLDEST("Sort by: oldest");
+    OLDEST("Sort by: oldest"),
+    OVERDUE_FIRST("Sort by: overdue first");
 
     private final String label;
 

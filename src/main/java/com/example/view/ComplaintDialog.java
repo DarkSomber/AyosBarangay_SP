@@ -25,6 +25,7 @@ import com.example.media.AttachmentCheckService;
 import com.example.model.Report;
 import com.example.model.ReportHistory;
 import com.example.model.ReportImage;
+import com.example.model.ReportPriority;
 import com.example.model.ReportStatus;
 import com.example.model.User;
 import com.example.spam.ReportSpamCheckService;
@@ -110,6 +111,7 @@ public class ComplaintDialog extends Dialog {
 
     public void setAdminInfo(String... lines) {
         adminInfo.removeAll();
+        adminInfo.setVisible(lines.length > 0);
         for (String line : lines) {
             adminInfo.add(new Div(new Span(line)));
         }
@@ -178,6 +180,7 @@ public class ComplaintDialog extends Dialog {
                 r.isUnresolvable() ? r.unresolvableReason() : r.resolutionDescription())));
         if (reviewer != null && ReportController.OPEN_STATUSES.contains(report.status())) {
             outcome.add(buildStatusForm());
+            outcome.add(buildPriorityForm());
         }
     }
 
@@ -212,6 +215,32 @@ public class ComplaintDialog extends Dialog {
         return new Div(next, text, save);
     }
 
+    private Div buildPriorityForm() {
+        Select<ReportPriority> priority = new Select<>();
+        priority.setLabel("Priority");
+        priority.setItems(ReportPriority.values());
+        priority.setItemLabelGenerator(ReportPriority::getLabel);
+        priority.setValue(report.priority());
+
+        Button save = new Button("Save priority", e -> {
+            try {
+                controller.updatePriority(report, reviewer, priority.getValue());
+                Notification.show("Report #" + report.reportId() + " priority updated.");
+                close();
+                if (onStatusChanged != null) {
+                    onStatusChanged.run();
+                }
+            } catch (IllegalArgumentException ex) {
+                Notification.show(ex.getMessage());
+            } catch (DataAccessException ex) {
+                log.error("Could not update priority of report {}", report.reportId(), ex);
+                Notification.show("Could not save the change. Please try again.");
+            }
+        });
+        save.addClassName("primary");
+        return new Div(priority, save);
+    }
+
     private static String textLabel(ReportStatus status) {
         if (status == ReportStatus.RESOLVED) {
             return "How was it resolved? (required, shown publicly)";
@@ -227,7 +256,10 @@ public class ComplaintDialog extends Dialog {
         Span dot = new Span();
         dot.addClassNames("status-dot",
                 "status-" + report.status().name().toLowerCase().replace('_', '-'));
-        Div status = new Div(statusLabel, dot);
+        Div status = new Div(statusLabel, dot, ReportRow.priorityBadge(controller.effectivePriority(report)));
+        if (controller.isOverdue(report)) {
+            status.add(ReportRow.overdueBadge());
+        }
         status.addClassName("complaint-status");
 
         Button close = new Button(VaadinIcon.CLOSE.create(), e -> close());
@@ -301,6 +333,7 @@ public class ComplaintDialog extends Dialog {
         }
 
         adminInfo.addClassName("complaint-date");
+        adminInfo.setVisible(false);
         Div left = new Div(date, adminInfo, details, photo, outcome);
         if (analysisService != null) {
             left.add(buildAnalysisSection(report));

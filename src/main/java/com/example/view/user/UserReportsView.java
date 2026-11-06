@@ -119,7 +119,7 @@ public class UserReportsView extends Div {
 
         var images = controller.getOriginalImages(reports);
         reports.forEach(r -> {
-            ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()));
+            ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()), controller);
             row.addClickListener(e -> {
                 ComplaintDialog dialog = new ComplaintDialog(r, controller);
                 me.ifPresent(u -> dialog.setResident(u, this::refreshList));

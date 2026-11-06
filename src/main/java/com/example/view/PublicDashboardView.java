@@ -11,8 +11,6 @@ import com.example.controller.SessionController;
 import com.example.model.ReportStatus;
 import com.example.model.SortOrder;
 import com.example.view.Login.LoginView;
-import com.example.view.admin.AdminReportsView;
-import com.example.view.user.UserReportsView;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -44,7 +42,6 @@ public class PublicDashboardView extends Div {
     private boolean showOnlyMyReports = false;
 
     private final Div listContainer = new Div();
-    private final Div devBar = new Div();
     private final Map<ReportStatus, Button> chipByStatus = new EnumMap<>(ReportStatus.class);
     private Button allChip;
     private Button scopeToggle;
@@ -65,7 +62,7 @@ public class PublicDashboardView extends Div {
     }
 
     private Div buildMain() {
-        Div main = new Div(buildHeader(), buildDevBar(), buildPanel(), buildCreateReportButton());
+        Div main = new Div(buildHeader(), buildPanel(), buildCreateReportButton());
         main.addClassNames("dashboard", "admin-main");
         return main;
     }
@@ -100,62 +97,6 @@ public class PublicDashboardView extends Div {
             newReports.remove();
             changes.remove();
         });
-    }
-
-    private void goToPanel() {
-        if (session.isAdmin()) {
-            UI.getCurrent().navigate(AdminReportsView.class);
-        } else {
-            UI.getCurrent().navigate(UserReportsView.class);
-        }
-    }
-
-    private Div buildDevBar() {
-        devBar.addClassName("dev-bar");
-        refreshDevBar();
-        return devBar;
-    }
-
-    private void refreshDevBar() {
-        devBar.removeAll();
-        devBar.setVisible(session.isDemoLoginEnabled());
-        if (!session.isDemoLoginEnabled()) {
-            return;
-        }
-
-        Span badge = new Span("DEV / TESTING ONLY");
-        badge.addClassName("dev-badge");
-        devBar.add(badge);
-
-        if (session.isLoggedIn()) {
-            String name = session.getCurrentUser().map(u -> u.fullName()).orElse("?");
-            String role = session.isAdmin() ? "admin" : "non-admin";
-            Span who = new Span("Testing as " + name + " (" + role + ")");
-            who.addClassName("dev-status");
-
-            Button open = new Button("Open my panel", e -> goToPanel());
-            open.addClassName("dev-button");
-            devBar.add(who, open);
-        } else {
-            Button asResident = new Button("Test as Resident", e -> demoLogin(false));
-            asResident.addClassName("dev-button");
-            Button asAdmin = new Button("Test as Admin", e -> demoLogin(true));
-            asAdmin.addClassName("dev-button");
-            devBar.add(asResident, asAdmin);
-        }
-    }
-
-    private void demoLogin(boolean admin) {
-        try {
-            if (admin) {
-                session.continueAsAdmin();
-            } else {
-                session.continueAsNonAdmin();
-            }
-            goToPanel();
-        } catch (IllegalStateException ex) {
-            Notification.show(ex.getMessage());
-        }
     }
 
     private Div buildPanel() {
@@ -270,7 +211,7 @@ public class PublicDashboardView extends Div {
 
         var images = controller.getOriginalImages(reports);
         reports.forEach(r -> {
-            ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()));
+            ReportRow row = new ReportRow(r, images.getOrDefault(r.reportId(), List.of()), controller);
             row.addClickListener(e -> new ComplaintDialog(r, controller).open());
             listContainer.add(row);
         });

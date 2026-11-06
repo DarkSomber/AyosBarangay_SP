@@ -32,7 +32,7 @@ public class InMemoryReportRepository implements ReportRepository {
         double lat = 14.5995 + id * 0.0015;
         double lng = 120.9842 + id * 0.0020;
         return new Report(id, 1, description, status, submitted, submitted, address,
-                lat, lng, null, null, null, null);
+                lat, lng, null, null, null, null, ReportPriority.NORMAL);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class InMemoryReportRepository implements ReportRepository {
         Report stored = new Report(id, report.userId(), report.description(), report.status(),
                 report.dateSubmitted(), report.updatedAt(), report.address(),
                 report.latitude(), report.longitude(), report.reviewedBy(), report.reviewDate(),
-                report.deletedAt(), report.deletionReason());
+                report.deletedAt(), report.deletionReason(), report.priority());
         reports.add(stored);
         return stored;
     }
@@ -56,14 +56,28 @@ public class InMemoryReportRepository implements ReportRepository {
                                               String address, LocalDateTime now) {
         return replaceIfOwnedAndOpen(reportId, userId, r -> new Report(r.reportId(), r.userId(),
                 description, r.status(), r.dateSubmitted(), now, address, r.latitude(), r.longitude(),
-                r.reviewedBy(), r.reviewDate(), r.deletedAt(), r.deletionReason()));
+                r.reviewedBy(), r.reviewDate(), r.deletedAt(), r.deletionReason(), r.priority()));
     }
 
     @Override
     public synchronized boolean softDelete(int reportId, int userId, String reason, LocalDateTime now) {
         return replaceIfOwnedAndOpen(reportId, userId, r -> new Report(r.reportId(), r.userId(),
                 r.description(), r.status(), r.dateSubmitted(), now, r.address(), r.latitude(),
-                r.longitude(), r.reviewedBy(), r.reviewDate(), now, reason));
+                r.longitude(), r.reviewedBy(), r.reviewDate(), now, reason, r.priority()));
+    }
+
+    @Override
+    public synchronized boolean updatePriority(int reportId, ReportPriority priority) {
+        for (int i = 0; i < reports.size(); i++) {
+            Report r = reports.get(i);
+            if (r.reportId() == reportId && !r.isDeleted()) {
+                reports.set(i, new Report(r.reportId(), r.userId(), r.description(), r.status(),
+                        r.dateSubmitted(), r.updatedAt(), r.address(), r.latitude(), r.longitude(),
+                        r.reviewedBy(), r.reviewDate(), r.deletedAt(), r.deletionReason(), priority));
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean replaceIfOwnedAndOpen(int reportId, int userId,

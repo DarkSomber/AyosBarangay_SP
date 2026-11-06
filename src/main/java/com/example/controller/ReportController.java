@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -27,6 +28,7 @@ import com.example.model.ReportAction;
 import com.example.model.ReportActivity;
 import com.example.model.ReportHistory;
 import com.example.model.ReportImage;
+import com.example.model.ReportPriority;
 import com.example.model.ReportRepository;
 import com.example.model.ReportReviewRepository;
 import com.example.model.ReportStatus;
@@ -61,11 +63,15 @@ public class ReportController {
     private final ReportSpamCheckService spamCheck;
     private final AttachmentCheckService attachmentCheck;
     private final DuplicateReportService duplicateCheck;
+    private final int overduePendingDays;
+    private final int overdueReviewDays;
 
     public ReportController(ReportRepository repository, ReportReviewRepository review,
                             UserRepository users, ReportNotifier notifier,
                             ReportActivityService activities, ReportSpamCheckService spamCheck,
-                            AttachmentCheckService attachmentCheck, DuplicateReportService duplicateCheck) {
+                            AttachmentCheckService attachmentCheck, DuplicateReportService duplicateCheck,
+                            @Value("${ayos.overdue.pending-days:7}") int overduePendingDays,
+                            @Value("${ayos.overdue.review-days:14}") int overdueReviewDays) {
         this.repository = repository;
         this.review = review;
         this.users = users;
@@ -74,6 +80,8 @@ public class ReportController {
         this.spamCheck = spamCheck;
         this.attachmentCheck = attachmentCheck;
         this.duplicateCheck = duplicateCheck;
+        this.overduePendingDays = overduePendingDays;
+        this.overdueReviewDays = overdueReviewDays;
     }
 
     public List<Report> getReports(ReportStatus status, SortOrder order) {
@@ -128,8 +136,11 @@ public class ReportController {
 
     private List<Report> filterAndSort(List<Report> source, ReportStatus status, SortOrder order) {
         Comparator<Report> byDate = Comparator.comparing(Report::dateSubmitted);
-        if (order == SortOrder.NEWEST) {
+        if (order == SortOrder.NEWEST || order == SortOrder.OVERDUE_FIRST) {
             byDate = byDate.reversed();
+        }
+        if (order == SortOrder.OVERDUE_FIRST) {
+            byDate = Comparator.comparing((Report r) -> !isOverdue(r)).thenComparing(byDate);
         }
         return source.stream()
                 .filter(r -> !r.isDeleted())
@@ -227,6 +238,29 @@ public class ReportController {
         ReportNotifier.StatusAlert alert = new ReportNotifier.StatusAlert(report.userId(), reportId,
                 "Your report #" + reportId + " is now " + newStatus.getLabel() + ".");
         afterCommit(() -> notifier.publishStatusChange(alert));
+    }
+
+    public void updatePriority(Report report, User admin, ReportPriority priority) {
+        if (admin == null || !admin.isAdmin()) {
+            throw new IllegalArgumentException("Only admins can change a report's priority.");
+        }
+        if (!OPEN_STATUSES.contains(report.status())) {
+            throw new IllegalArgumentException("This report is already closed.");
+        }
+        if (priority == null) {
+            throw new IllegalArgumentException("Choose a priority.");
+        }
+        if (!repository.updatePriority(report.reportId(), priority)) {
+            throw new IllegalArgumentException("This report can no longer be changed.");
+        }
+    }
+
+    public boolean isOverdue(Report report) {
+        return report.isOverdue(LocalDateTime.now(), overduePendingDays, overdueReviewDays);
+    }
+
+    public ReportPriority effectivePriority(Report report) {
+        return isOverdue(report) ? report.priority().raised() : report.priority();
     }
 
     private static void afterCommit(Runnable action) {

@@ -77,21 +77,21 @@ public class DuplicateReportService {
         return first.reportId() != null && Objects.equals(first.reportId(), second.reportId());
     }
 
-    private String normalize(String value) {
+    String normalize(String value) {
         return value.toLowerCase(Locale.ROOT)
                 .replaceAll("[^\\p{L}\\p{N}]+", " ")
                 .trim()
                 .replaceAll("\\s+", " ");
     }
 
-    private Set<String> words(String normalized) {
+    Set<String> words(String normalized) {
         if (normalized.isEmpty()) {
             return Set.of();
         }
         return List.of(normalized.split(" ")).stream().collect(Collectors.toSet());
     }
 
-    private double jaccard(Set<String> first, Set<String> second) {
+    double jaccard(Set<String> first, Set<String> second) {
         if (first.isEmpty() || second.isEmpty()) {
             return 0;
         }
@@ -100,7 +100,7 @@ public class DuplicateReportService {
         return (double) intersection / union;
     }
 
-    private double distanceMetres(Report first, Report second) {
+    double distanceMetres(Report first, Report second) {
         if (coordinatesUnavailable(first) || coordinatesUnavailable(second)) {
             return -1;
         }

@@ -17,7 +17,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -43,9 +42,6 @@ public class LoginView extends Div {
         this.passwordReset = passwordReset;
         addClassName("login-page");
         add(buildBubbles(), buildBrand(), buildCard());
-        if (session.isDemoLoginEnabled()) {
-            add(buildDevBar());
-        }
     }
 
 
@@ -111,24 +107,6 @@ public class LoginView extends Div {
         return card;
     }
 
-    private Div buildDevBar() {
-        Span badge = new Span("DEV / TESTING ONLY");
-        badge.addClassName("dev-badge");
-
-        Button asResident = new Button("Test as Resident", e -> demoLogin(false));
-        asResident.addClassName("dev-button");
-        Button asAdmin = new Button("Test as Admin", e -> demoLogin(true));
-        asAdmin.addClassName("dev-button");
-
-        Span hint = new Span("Or type " + SessionController.DEMO_RESIDENT_EMAIL + " / "
-                + SessionController.DEMO_ADMIN_EMAIL + " with the demo password.");
-        hint.addClassName("dev-status");
-
-        Div bar = new Div(badge, asResident, asAdmin, hint);
-        bar.addClassNames("dev-bar", "login-dev-bar");
-        return bar;
-    }
-
 
     private void attemptLogin() {
         if (email.isEmpty() || email.isInvalid() || password.isEmpty()) {
@@ -153,19 +131,6 @@ public class LoginView extends Div {
 
         session.login(user.get());
         enterApp();
-    }
-
-    private void demoLogin(boolean admin) {
-        try {
-            if (admin) {
-                session.continueAsAdmin();
-            } else {
-                session.continueAsNonAdmin();
-            }
-            enterApp();
-        } catch (IllegalStateException ex) {
-            Notification.show(ex.getMessage());
-        }
     }
 
     private void enterApp() {

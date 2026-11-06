@@ -1,21 +1,32 @@
 package com.example.view.admin;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.example.ai.ReportAnalysisService;
 import com.example.controller.ReportController;
 import com.example.controller.ReportController.ReportItem;
 import com.example.controller.SessionController;
 import com.example.duplicate.DuplicateReportService;
+import com.example.duplicate.ReportClusterService;
 import com.example.media.AttachmentCheckService;
+import com.example.model.Report;
+import com.example.model.ReportPriority;
 import com.example.model.ReportStatus;
 import com.example.model.User;
 import com.example.spam.ReportSpamCheckService;
 import com.example.view.ComplaintDialog;
+import com.example.view.ReportRow;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
@@ -52,20 +63,26 @@ public class AdminReportsView extends Div {
     private final ReportController controller;
     private final ReportAnalysisService analysisService;
     private final DuplicateReportService duplicateReportService;
+    private final ReportClusterService clusterService;
     private final ReportSpamCheckService spamCheckService;
     private final AttachmentCheckService attachmentCheckService;
     private final SessionController session;
 
     private Section section = Section.OPEN;
     private ReportStatus activeFilter = null;
+    private boolean overdueOnly = false;
 
     private final Map<Tab, Section> tabs = new LinkedHashMap<>();
     private final Div filterBar = new Div();
     private final TextField search = new TextField();
     private final Grid<ReportItem> grid = new Grid<>();
+    private final Checkbox group = new Checkbox("Group similar reports");
+    private final Map<Integer, List<ReportItem>> clusters = new HashMap<>();
+    private Grid.Column<ReportItem> groupColumn;
 
     public AdminReportsView(ReportController controller, ReportAnalysisService analysisService,
                             DuplicateReportService duplicateReportService,
+                            ReportClusterService clusterService,
                             ReportSpamCheckService spamCheckService,
                             AttachmentCheckService attachmentCheckService,
                             SessionController session) {
@@ -73,9 +90,11 @@ public class AdminReportsView extends Div {
         this.controller = controller;
         this.analysisService = analysisService;
         this.duplicateReportService = duplicateReportService;
+        this.clusterService = clusterService;
         this.spamCheckService = spamCheckService;
         this.attachmentCheckService = attachmentCheckService;
         addClassName("admin-page");
+        group.addValueChangeListener(e -> refreshList());
 
         Div panel = new Div(buildTabs(), filterBar, buildGrid());
         panel.addClassName("dashboard-panel");
@@ -96,6 +115,7 @@ public class AdminReportsView extends Div {
         bar.addSelectedChangeListener(e -> {
             section = tabs.get(e.getSelectedTab());
             activeFilter = null;
+            overdueOnly = false;
             buildFilterBar();
             refreshList();
         });
@@ -106,10 +126,14 @@ public class AdminReportsView extends Div {
         filterBar.removeAll();
         filterBar.addClassName("filter-bar");
 
-        filterBar.add(makeChip("All", null));
+        filterBar.add(makeChip("All", null, false));
         for (ReportStatus s : section.statuses) {
-            filterBar.add(makeChip(s.getLabel(), s));
+            filterBar.add(makeChip(s.getLabel(), s, false));
         }
+        if (section.statuses.contains(ReportStatus.PENDING)) {
+            filterBar.add(makeChip("Overdue", null, true));
+        }
+        filterBar.add(group);
 
         search.setPlaceholder("Search description, report ID or resident");
         search.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -122,16 +146,17 @@ public class AdminReportsView extends Div {
         filterBar.add(search);
     }
 
-    private Button makeChip(String text, ReportStatus status) {
+    private Button makeChip(String text, ReportStatus status, boolean overdue) {
         Button chip = new Button(text, e -> {
             activeFilter = status;
+            overdueOnly = overdue;
             filterBar.getChildren().filter(Button.class::isInstance)
                     .forEach(c -> ((Button) c).removeClassName("active"));
             e.getSource().addClassName("active");
             refreshList();
         });
         chip.addClassName("filter-chip");
-        chip.setClassName("active", activeFilter == status);
+        chip.setClassName("active", activeFilter == status && overdueOnly == overdue);
         return chip;
     }
 
@@ -150,10 +175,20 @@ public class AdminReportsView extends Div {
                 .setComparator(i -> i.report().dateSubmitted()).setAutoWidth(true);
         grid.addComponentColumn(AdminReportsView::statusCell).setHeader("Status")
                 .setComparator(i -> i.report().status()).setAutoWidth(true);
+        grid.addComponentColumn(i -> ReportRow.priorityBadge(highestPriority(i))).setHeader("Priority")
+                .setComparator(i -> highestPriority(i)).setAutoWidth(true);
+        groupColumn = grid.addComponentColumn(this::clusterBadge).setHeader("Group").setAutoWidth(true);
         grid.addColumn(i -> i.report().reviewDate() == null ? "-" : i.report().reviewDate().format(DATE))
                 .setHeader("Reviewed").setAutoWidth(true);
 
-        grid.addItemClickListener(e -> openReport(e.getItem()));
+        grid.addItemClickListener(e -> {
+            List<ReportItem> members = clusters.get(e.getItem().report().reportId());
+            if (members == null) {
+                openReport(e.getItem());
+            } else {
+                openCluster(members);
+            }
+        });
         return grid;
     }
 
@@ -167,8 +202,66 @@ public class AdminReportsView extends Div {
     }
 
 
+    private ReportPriority highestPriority(ReportItem item) {
+        return clusters.getOrDefault(item.report().reportId(), List.of(item)).stream()
+                .map(i -> controller.effectivePriority(i.report()))
+                .max(Comparator.naturalOrder())
+                .orElseThrow();
+    }
+
+    private Span clusterBadge(ReportItem item) {
+        List<ReportItem> members = clusters.get(item.report().reportId());
+        Span badge = new Span(members == null ? "" : members.size() + " reports");
+        badge.setVisible(members != null);
+        badge.addClassName("cluster-badge");
+        return badge;
+    }
+
+    private List<ReportItem> groupItems(List<ReportItem> items) {
+        Map<Integer, ReportItem> byId = new HashMap<>();
+        items.forEach(i -> byId.put(i.report().reportId(), i));
+        List<ReportItem> rows = new ArrayList<>();
+        Set<Integer> grouped = new HashSet<>();
+        for (List<Report> cluster : clusterService.cluster(items.stream().map(ReportItem::report).toList())) {
+            List<ReportItem> members = cluster.stream().map(r -> byId.get(r.reportId())).toList();
+            rows.add(members.get(0));
+            if (members.size() > 1) {
+                clusters.put(members.get(0).report().reportId(), members);
+            }
+            cluster.forEach(r -> grouped.add(r.reportId()));
+        }
+        items.stream().filter(i -> !grouped.contains(i.report().reportId())).forEach(rows::add);
+        rows.sort(Comparator.comparing((ReportItem i) -> i.report().dateSubmitted()).reversed());
+        return rows;
+    }
+
     private void refreshList() {
-        grid.setItems(controller.searchReports(section.statuses, activeFilter, search.getValue()));
+        List<ReportItem> items = controller.searchReports(section.statuses, activeFilter, search.getValue());
+        if (overdueOnly) {
+            items = items.stream().filter(i -> controller.isOverdue(i.report())).toList();
+        }
+        clusters.clear();
+        groupColumn.setVisible(group.getValue());
+        grid.setItems(group.getValue() ? groupItems(items) : items);
+    }
+
+    private void openCluster(List<ReportItem> members) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle(members.size() + " similar reports");
+        dialog.setWidth("720px");
+        Div list = new Div();
+        list.addClassName("report-list");
+        members.forEach(member -> {
+            ReportRow row = new ReportRow(member.report(), controller);
+            row.addClickListener(e -> {
+                dialog.close();
+                openReport(member);
+            });
+            list.add(row);
+        });
+        dialog.add(list);
+        dialog.getFooter().add(new Button("Close", e -> dialog.close()));
+        dialog.open();
     }
 
     private void openReport(ReportItem item) {

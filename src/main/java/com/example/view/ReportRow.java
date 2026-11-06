@@ -4,8 +4,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.controller.ReportController;
 import com.example.model.Report;
 import com.example.model.ReportImage;
+import com.example.model.ReportPriority;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -15,11 +17,11 @@ public class ReportRow extends Div {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MMM d, yyyy");
 
-    public ReportRow(Report report) {
-        this(report, List.of());
+    public ReportRow(Report report, ReportController controller) {
+        this(report, List.of(), controller);
     }
 
-    public ReportRow(Report report, List<ReportImage> images) {
+    public ReportRow(Report report, List<ReportImage> images, ReportController controller) {
         addClassName("report-row");
 
         Span desc = new Span(capitalize(report.description()));
@@ -35,10 +37,26 @@ public class ReportRow extends Div {
         Span dot = new Span();
         dot.addClassNames("status-dot",
                 "status-" + report.status().name().toLowerCase().replace('_', '-'));
-        Div status = new Div(statusLabel, dot);
+        Div status = new Div(priorityBadge(controller.effectivePriority(report)));
+        if (controller.isOverdue(report)) {
+            status.add(overdueBadge());
+        }
+        status.add(statusLabel, dot);
         status.addClassName("report-status");
 
         add(buildThumb(report, images), text, status);
+    }
+
+    public static Span priorityBadge(ReportPriority priority) {
+        Span badge = new Span(priority.getLabel());
+        badge.addClassNames("priority-badge", "priority-" + priority.name().toLowerCase());
+        return badge;
+    }
+
+    public static Span overdueBadge() {
+        Span badge = new Span("Overdue");
+        badge.addClassName("overdue-badge");
+        return badge;
     }
 
     private static String capitalize(String s) {
