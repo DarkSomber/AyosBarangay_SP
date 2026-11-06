@@ -11,12 +11,6 @@ import com.example.model.User;
 import com.example.model.UserRepository;
 import com.vaadin.flow.server.VaadinSession;
 
-/**
- * Holds the logged-in user in the server-side VaadinSession.
- * login() is used by the real login form. The demo methods look up seeded
- * accounts, so they satisfy the database foreign keys. Demo login is forced
- * off under the "prod" profile, whatever the property says.
- */
 @Service
 public class SessionController {
 
@@ -37,12 +31,10 @@ public class SessionController {
         return demoLoginEnabled;
     }
 
-    /** Called after credentials were verified. */
     public void login(User user) {
         session().setAttribute(User.class, user);
     }
 
-    // ----- DEV / TESTING ONLY -----
 
     public void continueAsNonAdmin() {
         loginDemo(DEMO_RESIDENT_EMAIL);
@@ -61,7 +53,6 @@ public class SessionController {
         login(demo);
     }
 
-    // ----- Session state -----
 
     public Optional<User> getCurrentUser() {
         VaadinSession session = VaadinSession.getCurrent();
@@ -76,11 +67,10 @@ public class SessionController {
         return getCurrentUser().map(User::isAdmin).orElse(false);
     }
 
-    /** Logs out. */
     public void reset() {
         VaadinSession session = VaadinSession.getCurrent();
         if (session != null) {
-            session.setAttribute(User.class, null); // null removes the attribute
+            session.setAttribute(User.class, null);
         }
     }
 

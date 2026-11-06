@@ -15,11 +15,6 @@ import org.slf4j.LoggerFactory;
 import com.example.model.ReportImage;
 import com.vaadin.flow.server.StreamResource;
 
-/**
- * Turns a stored report image into something a browser can load. Only png and
- * jpeg files inside the upload folder are served. When an image is skipped, the
- * reason is logged as a warning so missing thumbnails can be traced.
- */
 final class ReportImages {
 
     private static final Logger log = LoggerFactory.getLogger(ReportImages.class);
@@ -30,7 +25,6 @@ final class ReportImages {
     static Optional<StreamResource> resource(ReportImage image) {
         try {
             Path root = CreateReportDialog.UPLOAD_DIR.toAbsolutePath().normalize();
-            // Photos uploaded before the upload folder was configurable live in the temp folder.
             Path legacyRoot = Paths.get(System.getProperty("java.io.tmpdir"), "ayosbarangay-uploads")
                     .toAbsolutePath().normalize();
             Path file = Paths.get(image.imagePath()).toAbsolutePath().normalize();

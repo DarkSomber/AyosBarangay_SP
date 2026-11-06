@@ -1,9 +1,5 @@
 package com.example.ai;
 
-/**
- * Controlled report topics: infrastructure, water/drainage, waste, public
- * safety, animal control, public health, noise/disturbance, or other.
- */
 public enum ReportCategory {
     INFRASTRUCTURE,
     WATER_AND_DRAINAGE,

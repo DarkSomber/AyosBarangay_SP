@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=League+Spartan:wght@800;900&family=Inter:wght@400;500&display=swap');
 
-/* ---------- Public Dashboard ---------- */
 
 .dashboard {
   background: #d9d9d9;
@@ -33,16 +32,13 @@ vaadin-button.menu-button {
 }
 
 .dashboard-panel {
-  background: white;
   margin: 0 20px 20px 20px;
   padding: 16px;
-  border-radius: 6px;
   flex: 1;
   overflow-y: auto;
   box-sizing: border-box;
 }
 
-/* ---------- Filters ---------- */
 
 .filter-bar {
   display: flex;
@@ -68,32 +64,27 @@ vaadin-button.filter-chip.active {
   width: 180px;
 }
 
-/* ---------- Report list ---------- */
 
 .report-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-top: 12px;
-  padding-bottom: 70px; /* room for the floating button */
+  padding-bottom: 70px;
 }
 
 .report-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #e6e6e6;
   padding: 10px;
-  border-radius: 4px;
   cursor: pointer;
 }
 
 .report-thumb {
-  background: #8a8a8a;
   width: 84px;
   height: 60px;
   flex-shrink: 0;
-  border-radius: 4px;
 }
 
 .report-text {
@@ -101,7 +92,7 @@ vaadin-button.filter-chip.active {
   flex-direction: column;
   gap: 2px;
   flex: 1;
-  min-width: 0; /* lets the ellipsis work inside flex */
+  min-width: 0;
 }
 
 .report-title {
@@ -147,14 +138,9 @@ vaadin-button.create-report-button {
   right: 32px;
   bottom: 32px;
   border-radius: 999px;
-  background: white;
-  color: #222;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   z-index: 10;
 }
 
-/* ---------- Complaint Screen (dialog) ---------- */
-/* Fixed size so every report opens the same-sized window, like the Figma blueprint. */
 
 .complaint-root {
   display: flex;
@@ -199,10 +185,9 @@ vaadin-button.complaint-close {
   flex-wrap: nowrap;
   gap: 16px;
   flex: 1;
-  min-height: 0; /* lets the columns shrink instead of growing the dialog */
+  min-height: 0;
 }
 
-/* left column: date, details (scrolls if long), photo */
 .complaint-left {
   display: flex;
   flex-direction: column;
@@ -354,7 +339,6 @@ vaadin-button.complaint-close {
   font-size: 0.85em;
 }
 
-/* right column: map fills the height, address sits below */
 .complaint-right {
   display: flex;
   flex-direction: column;
@@ -381,14 +365,11 @@ vaadin-button.complaint-close {
   font-size: 0.9em;
   flex-shrink: 0;
 }
-/* ---------- Admin panels ---------- */
-/* Paste this at the bottom of your existing styles.css. */
 
 .admin-shell {
   display: flex;
   min-height: 100vh;
   box-sizing: border-box;
-  background: #d9d9d9;
 }
 
 .admin-shell.collapsed .admin-sidebar {
@@ -402,7 +383,12 @@ vaadin-button.complaint-close {
   flex-shrink: 0;
   box-sizing: border-box;
   padding: 20px 22px;
-  background: #969696;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 .admin-avatar {
@@ -416,28 +402,14 @@ vaadin-button.complaint-close {
 .admin-nav {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 vaadin-button.admin-nav-button,
 vaadin-button.admin-login-button {
   justify-content: flex-start;
-  height: 56px;
   margin: 0;
-  border-radius: 0;
-  background: #d9d9d9;
-  color: #222;
   cursor: pointer;
-}
-
-vaadin-button.admin-nav-button.active {
-  background: #575553;
-  color: white;
-}
-
-vaadin-button.admin-login-button {
-  justify-content: center;
-  margin-top: auto;
 }
 
 .admin-main {
@@ -461,7 +433,6 @@ vaadin-button.admin-login-button {
   min-height: 0;
 }
 
-/* ---------- Admin settings ---------- */
 
 .settings-panel {
   display: flex;
@@ -501,10 +472,6 @@ vaadin-button.settings-logout {
   cursor: pointer;
 }
 
-/* ================================================================
-   Login page (green glass design)
-   Replaces the previous grey-card login block.
-   ================================================================ */
 
 .login-page {
   --forest: #12290f;
@@ -524,7 +491,6 @@ vaadin-button.settings-logout {
   background: linear-gradient(135deg, #14684a 0%, #4e8a1a 32%, #a9d36b 62%, #ddffb8 82%, #eaffa6 100%);
 }
 
-/* Left: logo + name */
 .login-brand {
   position: relative;
   z-index: 1;
@@ -539,13 +505,13 @@ vaadin-button.settings-logout {
 .login-logo {
   width: clamp(180px, 26vw, 270px);
   aspect-ratio: 1;
-  border-radius: 50%;
-  object-fit: cover; /* keeps an <Image> circular without stretching */
+  object-fit: contain;
   background-size: cover;
   background-position: center;
 }
 
 .login-logo-placeholder {
+  border-radius: 50%;
   background-color: #d9d9d9;
 }
 
@@ -559,7 +525,6 @@ vaadin-button.settings-logout {
   color: var(--forest);
 }
 
-/* Right: frosted card */
 .login-card {
   position: relative;
   z-index: 1;
@@ -594,12 +559,11 @@ vaadin-button.settings-logout {
   padding: 0 0.5rem;
 }
 
-/* Vaadin fields: white rounded input with a dark green outline */
 .login-field {
   width: 100%;
   --vaadin-input-field-background: #ffffff;
   --vaadin-input-field-border-radius: 10px;
-  --lumo-contrast-10pct: #ffffff; /* Lumo input background fallback */
+  --lumo-contrast-10pct: #ffffff;
   --lumo-border-radius-m: 10px;
 }
 
@@ -622,7 +586,6 @@ vaadin-button.settings-logout {
   color: rgba(18, 41, 15, 0.7);
 }
 
-/* Pushes the button + links to the bottom of the card */
 .login-actions {
   margin-top: auto;
   padding-top: 2rem;
@@ -654,7 +617,6 @@ vaadin-button.login-forgot {
   cursor: pointer;
 }
 
-/* DEV bar on the login page: sits at the bottom, frosted. Beats .dev-bar margins below. */
 .login-page .login-dev-bar {
   position: absolute;
   z-index: 2;
@@ -667,7 +629,6 @@ vaadin-button.login-forgot {
   background: rgba(255, 244, 214, 0.9);
 }
 
-/* Decorative bubbles */
 .login-bubbles {
   position: absolute;
   inset: 0;
@@ -684,7 +645,6 @@ vaadin-button.login-forgot {
   box-shadow: inset -4px -6px 12px rgba(255, 255, 255, 0.25);
 }
 
-/* big translucent rings, top left */
 .login-bubble-1,
 .login-bubble-2,
 .login-bubble-3 {
@@ -696,14 +656,12 @@ vaadin-button.login-forgot {
 .login-bubble-2 { width: 18vw; height: 18vw; top: 3vw;  left: 20vw; }
 .login-bubble-3 { width: 15vw; height: 15vw; top: 6vw;  left: 32vw; border-color: rgba(255, 255, 255, 0.15); }
 
-/* small solid spheres */
 .login-bubble-4 { width: 9vw;  height: 9vw;  top: 7vw;     left: 49vw; }
 .login-bubble-5 { width: 7vw;  height: 7vw;  top: 14vw;    left: 43vw; }
 .login-bubble-6 { width: 5vw;  height: 5vw;  top: 11vw;    left: 58vw; opacity: 0.8; }
 .login-bubble-7 { width: 18vw; height: 18vw; bottom: -8vw; right: -4vw; opacity: 0.7; }
 .login-bubble-8 { width: 6vw;  height: 6vw;  bottom: 3vw;  right: 22vw; opacity: 0.8; }
 
-/* Stack on narrow screens */
 @media (max-width: 800px) {
   .login-page {
     flex-direction: column;
@@ -736,8 +694,6 @@ vaadin-button.login-forgot {
   }
 }
 
-/* ---------- Forgot Password (dialog) ---------- */
-/* Append to styles.css. Colors are temporary placeholders. */
 
 .forgot-root {
   width: 380px;
@@ -781,11 +737,10 @@ vaadin-button.login-forgot {
 .forgot-field {
   width: 100%;
   text-align: left;
-  --lumo-contrast-10pct: #ffffff; /* white input background */
+  --lumo-contrast-10pct: #ffffff;
   --lumo-border-radius-m: 8px;
 }
 
-/* 6 digit boxes */
 .forgot-code-row {
   display: flex;
   justify-content: center;
@@ -805,7 +760,6 @@ vaadin-text-field.code-box input {
   font-size: 1.25rem;
 }
 
-/* button(s) pinned to the bottom of the panel */
 .forgot-actions {
   display: flex;
   flex-direction: column;
@@ -830,19 +784,7 @@ vaadin-button.forgot-link {
   cursor: pointer;
 }
 
-/* ---------- User screens ---------- */
-/* Append to styles.css. The user layout reuses the admin-* classes; only the sidebar Logout is new. */
 
-vaadin-button.sidebar-logout {
-  align-self: flex-start;
-  margin: auto 0 0 0;
-  border-radius: 0;
-  background: #e6e6e6;
-  color: #222;
-  cursor: pointer;
-}
-
-/* Circle button: fixed in the top-left corner so it works with the sidebar open or closed */
 vaadin-button.user-menu-button {
   position: fixed;
   top: 12px;
@@ -851,18 +793,15 @@ vaadin-button.user-menu-button {
   border: 1px solid #333;
 }
 
-/* Keeps the sidebar buttons clear of the floating circle */
 .user-menu-space {
   height: 40px;
   margin-bottom: 40px;
   flex-shrink: 0;
 }
 
-/* Header with only the title, aligned right */
 .user-header {
   justify-content: flex-end;
 }
-/* ---------- DEV / TESTING strip (temporary demo login) ---------- */
 
 .dev-bar {
   display: flex;
@@ -898,7 +837,6 @@ vaadin-button.dev-button {
   cursor: pointer;
 }
 
-/* ---------- Create Report dialog ---------- */
 
 .create-report-dialog {
   width: 850px;
@@ -989,7 +927,6 @@ vaadin-button.create-auto-toggle.on {
   color: white;
 }
 
-/* Stretch map to fill remaining space */
 .create-map {
   flex: 1;
   min-height: 0;
@@ -1044,7 +981,6 @@ vaadin-button.create-cancel {
   flex-shrink: 0;
 }
 
-/* Cancel Warning Prompt */
 .cancel-warning-text {
   display: block;
   text-align: center;
@@ -1060,12 +996,11 @@ vaadin-button.create-cancel {
 }
 
 vaadin-button.filter-chip[active] {
-  background: #2f6fed; /* Blue for scope toggle */
+  background: #2f6fed;
   color: white;
   border-color: #2f6fed;
 }
 
-/* ---------- Create Report Map ---------- */
 
 .create-map {
   flex: 1;
@@ -1085,7 +1020,6 @@ vaadin-button.filter-chip[active] {
   border-radius: 2px;
 }
 
-/* ---------- Media Upload & Gallery ---------- */
 
 .create-image-zone {
   display: flex;
@@ -1135,14 +1069,12 @@ vaadin-button.filter-chip[active] {
   object-fit: cover;
 }
 
-/* ---------- Report photo thumbnail and preview ---------- */
 .report-thumb.has-image { overflow: hidden; cursor: zoom-in; }
 .report-thumb-image { display: block; width: 100%; height: 100%; object-fit: cover; }
 .image-preview-root { display: flex; flex-direction: column; align-items: center; }
 .image-preview-top { align-self: flex-end; margin-bottom: 8px; }
 .image-preview-image { display: block; max-width: 80vw; max-height: 70vh; object-fit: contain; }
 
-/* Additional feature regarding password css */
 .forgot-root { background: #dff5cd; }
 .forgot-heading { color: #12260f; }
 .forgot-subtitle, .forgot-field label { color: #12260f; }
@@ -1160,7 +1092,6 @@ vaadin-button.forgot-button {
   border-radius: 10px;
 }
 
-/* CSS for barangay info */
 .barangay-root {
   display: flex;
   flex-direction: column;
@@ -1176,12 +1107,6 @@ vaadin-button.forgot-button {
 .barangay-location { min-height: 90px; }
 vaadin-button.barangay-close { align-self: flex-end; margin-top: auto; background: #d9d9d9; color: #222; border-radius: 2px; }
 
-/* ================================================================
-   User / Public Dashboard: green theme (matches the login design)
-   Placed last so it overrides the earlier grey rules. The shell,
-   sidebar and menu button are shared with the admin screens, so
-   they pick up the same look.
-   ================================================================ */
 
 .admin-shell,
 .dashboard {
@@ -1190,6 +1115,7 @@ vaadin-button.barangay-close { align-self: flex-end; margin-top: auto; backgroun
   --mint: #8de8c6;
   --chip: #a9dc90;
   --row: #efffd0;
+  --radius: 8px;
 }
 
 .admin-shell {
@@ -1197,29 +1123,18 @@ vaadin-button.barangay-close { align-self: flex-end; margin-top: auto; backgroun
   color: var(--forest);
 }
 
-/* ----- Sidebar ----- */
-
-.admin-sidebar {
-  background: linear-gradient(90deg, #2a7243 0%, #2f7a48 70%, #4a8f57 100%);
-  border-right: 1px solid var(--forest);
-}
 
 .admin-avatar {
   background: #a3a3a3;
   border: 0;
-  object-fit: cover; /* for the real image later */
-}
-
-.admin-nav {
-  gap: 12px;
+  object-fit: cover;
 }
 
 vaadin-button.admin-nav-button,
-vaadin-button.admin-login-button,
-vaadin-button.sidebar-logout {
+vaadin-button.admin-login-button {
   height: 44px;
   padding: 0 14px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: rgba(190, 232, 160, 0.85);
   color: var(--forest);
   font-size: 1rem;
@@ -1230,7 +1145,6 @@ vaadin-button.admin-nav-button.active {
   color: #f4ffd8;
 }
 
-/* round menu button */
 vaadin-button.user-menu-button,
 vaadin-button.menu-button {
   background: #a3a3a3;
@@ -1238,7 +1152,6 @@ vaadin-button.menu-button {
   color: #fff;
 }
 
-/* ----- Header with logo + name ----- */
 
 .dashboard {
   background: transparent;
@@ -1253,14 +1166,14 @@ vaadin-button.menu-button {
 .brand-logo {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
   background-size: cover;
   background-position: center;
   flex-shrink: 0;
 }
 
 .brand-logo-placeholder {
+  border-radius: 50%;
   background-color: #a3a3a3;
 }
 
@@ -1272,15 +1185,13 @@ vaadin-button.menu-button {
   color: var(--forest);
 }
 
-/* ----- Panel ----- */
 
 .dashboard-panel {
   background: var(--cream);
   border: 1px solid var(--forest);
-  border-radius: 2px;
+  border-radius: var(--radius);
 }
 
-/* ----- Filter chips + sort ----- */
 
 vaadin-button.filter-chip {
   background: var(--chip);
@@ -1304,18 +1215,21 @@ vaadin-button.filter-chip.active {
   color: var(--forest);
 }
 
-/* ----- Report rows ----- */
 
 .report-row {
   background: var(--row);
   border: 1px solid var(--forest);
-  border-radius: 2px;
+  border-radius: var(--radius);
 }
 
 .report-thumb {
-  background: #fff;
+  background: var(--chip);
   border: 1px solid var(--forest);
-  border-radius: 2px;
+  border-radius: var(--radius);
+}
+
+.report-thumb:not(.has-image) {
+  background: var(--chip) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312290f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' opacity='.45'%3E%3Crect x='3' y='4' width='18' height='16' rx='2'/%3E%3Ccircle cx='9' cy='10' r='1.6'/%3E%3Cpath d='M21 16l-5-5-8 9'/%3E%3C/svg%3E") center / 28px no-repeat;
 }
 
 .report-title {
@@ -1341,36 +1255,28 @@ vaadin-button.create-report-button {
   box-shadow: none;
 }
 
-/* ================================================================
-   User Settings screen + shared sidebar details (green theme)
-   ================================================================ */
 
-/* Sidebar fades to light green on its right edge, as in the mockup */
 .admin-sidebar {
   background: linear-gradient(90deg, #2a7243 0%, #2f7a48 78%, #8dbf84 100%);
 }
 
-/* Round menu button keeps a thin outline */
 vaadin-button.user-menu-button,
 vaadin-button.menu-button {
   border: 1px solid rgba(18, 41, 15, 0.6);
 }
 
-/* Logout / Log in at the bottom of the sidebar: dark fill, light outline */
-vaadin-button.admin-login-button,
-vaadin-button.sidebar-logout {
+vaadin-button.admin-login-button {
   width: 100%;
   height: 40px;
   margin: auto 0 0 0;
   justify-content: center;
   border: 1px solid #bfe3a0;
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: #2a5a2c;
   color: #f4ffd8;
   font-size: 1rem;
 }
 
-/* The cream panel that holds the settings rows */
 .settings-panel {
   flex: 1;
   margin: 0 20px 20px 20px;
@@ -1407,19 +1313,15 @@ vaadin-button.settings-action {
   font-size: 0.9rem;
 }
 
-/* Admin settings Logout keeps its original size and right alignment, just recolored */
 vaadin-button.settings-logout {
   align-self: flex-end;
   margin-top: auto;
   border: 1px solid #bfe3a0;
-  border-radius: 2px;
+  border-radius: var(--radius);
   background: #2a5a2c;
   color: #f4ffd8;
 }
 
-/* ================================================================
-   User Emergency panel (green theme)
-   ================================================================ */
 
 .emergency-panel {
   display: flex;
@@ -1436,7 +1338,6 @@ vaadin-button.settings-logout {
   color: var(--forest, #12290f);
 }
 
-/* ----- Top card ----- */
 
 .emergency-top {
   padding: 16px 20px 18px;
@@ -1489,18 +1390,24 @@ vaadin-button.emergency-circle.hotline {
 }
 
 .emergency-hotline-text {
+  display: block;
   font-size: clamp(1.6rem, 3.4vw, 2.3rem);
   font-weight: 800;
+  line-height: 1.3;
+}
+
+vaadin-button.emergency-circle::part(label) {
+  overflow: visible;
+  line-height: 1.3;
 }
 
 .emergency-icon {
   width: 56%;
   height: 56%;
   object-fit: contain;
-  pointer-events: none; /* clicks go to the button */
+  pointer-events: none;
 }
 
-/* Icons like these are usually black, so this turns them white on the dark green circle. */
 .emergency-icon-light {
   filter: brightness(0) invert(1);
 }
@@ -1516,7 +1423,6 @@ vaadin-button.emergency-circle.hotline {
 .emergency-cross::before { left: 18%; right: 18%; top: 39%; bottom: 39%; }
 .emergency-cross::after  { top: 18%; bottom: 18%; left: 39%; right: 39%; }
 
-/* ----- Bottom row ----- */
 
 .emergency-bottom {
   display: flex;
@@ -1592,4 +1498,52 @@ vaadin-button.emergency-call-circle {
   font-size: 1.2rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.complaint-outcome {
+  max-height: 320px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+}
+
+.summary-card h4 {
+  margin: 0;
+}
+
+.summary-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.activity-timeline { display: flex; flex-direction: column; gap: 14px; margin: 8px 0 12px; }
+.activity-item { display: flex; gap: 12px; position: relative; }
+.activity-item:not(:last-child)::before {
+  content: ""; position: absolute; left: 5px; top: 14px; bottom: -16px; width: 2px; background: rgba(120, 130, 150, 0.35);
+}
+.activity-dot { flex: 0 0 12px; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%; background: #3b82f6; }
+.activity-title { font-weight: 600; }
+.activity-status { font-size: 0.9rem; }
+.activity-meta { font-size: 0.8rem; opacity: 0.7; }
+.activity-remarks { margin-top: 2px; font-size: 0.9rem; white-space: pre-wrap; }
+
+.notif-bell { position: relative; display: inline-flex; margin-left: 12px; }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%;
+  background: #e11d2e; border: 2px solid #fff; pointer-events: none;
+}
+.notif-item { padding: 10px 0; border-bottom: 1px solid rgba(120, 130, 150, 0.25); }
+.notif-unread .notif-message { font-weight: 700; }
+.notif-time { font-size: 0.8rem; opacity: 0.7; }
+.notif-actions { display: flex; gap: 8px; margin-top: 6px; }
+@keyframes ayos-flash { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+body.ayos-flash::after {
+  content: ""; position: fixed; inset: 0; z-index: 100000; pointer-events: none;
+  background: rgba(220, 38, 38, 0.3); animation: ayos-flash 0.5s ease-in-out 3;
 }

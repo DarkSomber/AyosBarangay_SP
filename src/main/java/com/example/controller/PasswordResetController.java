@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.model.UserRepository;
 
-/** Forgot-password logic: issue a code, check it, then set the new password. */
 @Service
 public class PasswordResetController {
 
@@ -23,6 +22,7 @@ public class PasswordResetController {
     public static final int MIN_PASSWORD_LENGTH = 8;
     private static final Duration CODE_LIFETIME = Duration.ofMinutes(10);
     private static final int MAX_ATTEMPTS = 5;
+    private static final Duration REQUEST_COOLDOWN = Duration.ofSeconds(30);
 
     private static final Logger log = LoggerFactory.getLogger(PasswordResetController.class);
 
@@ -42,6 +42,7 @@ public class PasswordResetController {
     private final boolean showCodes;
     private final SecureRandom random = new SecureRandom();
     private final Map<String, PendingReset> pending = new ConcurrentHashMap<>();
+    private final Map<String, Instant> lastRequest = new ConcurrentHashMap<>();
 
     public PasswordResetController(UserRepository users, PasswordEncoder encoder,
                                    @Value("${ayos.dev.show-reset-codes:false}") boolean showCodes) {
@@ -50,29 +51,39 @@ public class PasswordResetController {
         this.showCodes = showCodes;
     }
 
-    /** Returns the code only when dev display is on, so the screen can show it as a notification. */
-    public Optional<String> sendResetCode(String email) {
+    public synchronized Optional<String> sendResetCode(String email) {
         String key = normalize(email);
+        Instant now = Instant.now();
+        pending.values().removeIf(p -> now.isAfter(p.expiresAt));
+        lastRequest.values().removeIf(t -> now.isAfter(t.plus(REQUEST_COOLDOWN)));
+        Instant previous = lastRequest.get(key);
+        if (!key.isEmpty() && previous != null) {
+            long wait = Duration.between(now, previous.plus(REQUEST_COOLDOWN)).toSeconds() + 1;
+            throw new IllegalArgumentException("Please wait " + wait + " seconds before requesting another code.");
+        }
+        if (!key.isEmpty()) {
+            lastRequest.put(key, now);
+        }
         String code = String.format("%0" + CODE_LENGTH + "d", random.nextInt((int) Math.pow(10, CODE_LENGTH)));
         String hash = encoder.encode(code);
         if (key.isEmpty() || users.findByEmail(key).isEmpty()) {
             return Optional.empty();
         }
-        pending.put(key, new PendingReset(hash, Instant.now().plus(CODE_LIFETIME)));
-        // TODO: send by email here when that's added; then turn show-reset-codes off.
+        pending.put(key, new PendingReset(hash, now.plus(CODE_LIFETIME)));
         return showCodes ? Optional.of(code) : Optional.empty();
     }
 
-    /** Step 2: true if the code is right and not expired. Wrong guesses are limited. */
     public boolean verifyResetCode(String email, String code) {
         return checkCode(email, code);
     }
 
-    /** Step 3: re-checks the code itself, then replaces the password hash. */
     public synchronized void resetPassword(String email, String code, String newPassword) {
         if (newPassword == null || newPassword.length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException(
                     "Password must be at least " + MIN_PASSWORD_LENGTH + " characters.");
+        }
+        if (newPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {
+            throw new IllegalArgumentException("Password must be at most 72 bytes long.");
         }
         if (!checkCode(email, code)) {
             throw new IllegalArgumentException("That code is wrong or has expired. Please request a new one.");

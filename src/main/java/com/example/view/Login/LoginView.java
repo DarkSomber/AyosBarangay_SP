@@ -12,9 +12,11 @@ import com.example.view.admin.AdminReportsView;
 import com.example.view.user.UserReportsView;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
+import com.example.view.BrandLogo;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -46,9 +48,7 @@ public class LoginView extends Div {
         }
     }
 
-    // ---------- UI building ----------
 
-    /** Decorative glass bubbles in the background (purely visual, positioned in CSS). */
     private Div buildBubbles() {
         Div bubbles = new Div();
         bubbles.addClassName("login-bubbles");
@@ -61,14 +61,8 @@ public class LoginView extends Div {
         return bubbles;
     }
 
-    /** Left side: logo circle + app name. */
     private Div buildBrand() {
-        // The grey circle. To use a real image later, either:
-        //   (a) set background-image on .login-logo in CSS and drop the placeholder class, or
-        //   (b) replace this Div with: Image logo = new Image("images/logo.png", "AyosBarangay logo");
-        //       logo.addClassName("login-logo");
-        Div logo = new Div();
-        logo.addClassNames("login-logo", "login-logo-placeholder");
+        Image logo = BrandLogo.create("login-logo");
 
         H1 name = new H1("AyosBarangay");
         name.addClassName("login-brand-name");
@@ -78,7 +72,6 @@ public class LoginView extends Div {
         return brand;
     }
 
-    /** Right side: frosted card with the form. */
     private Div buildCard() {
         H2 heading = new H2("Login");
         heading.addClassName("login-heading");
@@ -98,14 +91,19 @@ public class LoginView extends Div {
         Button forgot = new Button("Forgot password", e -> new ForgotPasswordDialog(passwordReset).open());
         forgot.addClassName("login-forgot");
 
-        // Back to the public dashboard (visitors can view reports without an account).
         Button guest = new Button("Back to public view", e -> UI.getCurrent().navigate(""));
         guest.addClassName("login-forgot");
+
+        Button register = new Button("Create account", e -> new RegisterDialog(auth, user -> {
+            session.login(user);
+            enterApp();
+        }).open());
+        register.addClassName("login-forgot");
 
         Div form = new Div(email, password);
         form.addClassName("login-form");
 
-        Div actions = new Div(login, forgot, guest);
+        Div actions = new Div(login, forgot, register, guest);
         actions.addClassName("login-actions");
 
         Div card = new Div(heading, form, actions);
@@ -113,7 +111,6 @@ public class LoginView extends Div {
         return card;
     }
 
-    /** DEV / TESTING ONLY. One-click logins for the seeded demo accounts. */
     private Div buildDevBar() {
         Span badge = new Span("DEV / TESTING ONLY");
         badge.addClassName("dev-badge");
@@ -132,7 +129,6 @@ public class LoginView extends Div {
         return bar;
     }
 
-    // ---------- Actions ----------
 
     private void attemptLogin() {
         if (email.isEmpty() || email.isInvalid() || password.isEmpty()) {

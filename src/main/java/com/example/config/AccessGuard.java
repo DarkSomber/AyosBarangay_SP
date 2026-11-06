@@ -11,18 +11,6 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
 
-/**
- * Route protection and start page.
- *   first page of every load/reload -> always the public dashboard
- *   admin/*  -> admins only
- *   user/*   -> logged-in non-admins only
- *   ""       -> public dashboard, open to everyone (the app's start page)
- *   login    -> login screen; people already logged in go to their own panel
- *
- * A browser reload or a newly opened tab creates a new UI, so the first
- * navigation of each UI is sent to the public dashboard. Moving around inside
- * the app (menu, login, logout) is not a new UI and works as before.
- */
 @Component
 public class AccessGuard implements VaadinServiceInitListener {
 
@@ -45,7 +33,6 @@ public class AccessGuard implements VaadinServiceInitListener {
     }
 
     private void beforeEnter(BeforeEnterEvent event, boolean firstNavigation) {
-        // Reload or fresh open: start on the public dashboard, whatever the URL was.
         if (firstNavigation && !event.getLocation().getPath().isEmpty()) {
             event.forwardTo(PublicDashboardView.class);
             return;
@@ -70,7 +57,6 @@ public class AccessGuard implements VaadinServiceInitListener {
                 }
             }
             case "login" -> {
-                // Already logged in: skip the login screen and go to your own panel.
                 if (loggedIn) {
                     if (admin) {
                         event.forwardTo(AdminReportsView.class);
