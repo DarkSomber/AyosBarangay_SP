@@ -1,7 +1,9 @@
 package com.example.view.admin;
 
+import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,16 +11,20 @@ import org.springframework.dao.DataAccessException;
 
 import com.example.ai.AISummaryService;
 import com.example.ai.ReportAnalysisException;
+import com.example.ai.SummaryPdfService;
 import com.example.controller.SessionController;
 import com.example.model.AISummary;
 import com.example.model.User;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 
 @Route(value = "admin/summary", layout = AdminLayout.class)
 @PageTitle("AI Summary | AyosBarangay")
@@ -26,9 +32,11 @@ public class AdminSummaryView extends Div {
 
     private static final Logger log = LoggerFactory.getLogger(AdminSummaryView.class);
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("MMM d, yyyy");
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a");
 
     private final AISummaryService service;
     private final SessionController session;
+    private final SummaryPdfService pdf;
 
     private final DatePicker start = new DatePicker("From");
     private final DatePicker end = new DatePicker("To");
@@ -37,7 +45,9 @@ public class AdminSummaryView extends Div {
     private final Div result = new Div();
     private final Div history = new Div();
 
-    public AdminSummaryView(AISummaryService service, SessionController session) {
+    public AdminSummaryView(AISummaryService service, SessionController session,
+                            SummaryPdfService pdf) {
+        this.pdf = pdf;
         this.service = service;
         this.session = session;
         addClassName("admin-page");
@@ -95,30 +105,56 @@ public class AdminSummaryView extends Div {
                     error.setVisible(true);
                     return;
                 }
-                show(done);
+                show(done, false);
                 refreshHistory();
             });
         }).start();
     }
 
-    private void show(AISummary s) {
+    private void show(AISummary s, boolean previous) {
         result.removeAll();
+        if (previous) {
+            Span note = new Span("Previously generated summary - created on "
+                    + s.generatedAt().format(DATE_TIME));
+            note.addClassName("summary-previous-note");
+            result.add(note);
+        }
         Span title = new Span(s.summaryPeriodStart().format(DATE) + " - "
                 + s.summaryPeriodEnd().format(DATE) + " (" + s.reportCount() + " reports)");
         title.addClassName("report-title");
         Div body = new Div();
         body.setText(s.summaryContent());
         body.getStyle().set("white-space", "pre-wrap");
-        result.add(title, body);
+        Anchor download = new Anchor(new StreamResource(
+                "ai-summary-" + s.summaryPeriodStart() + "-to-" + s.summaryPeriodEnd() + ".pdf",
+                () -> new ByteArrayInputStream(pdf.build(s))), "");
+        download.getElement().setAttribute("download", true);
+        download.add(new Button("Download PDF", VaadinIcon.DOWNLOAD.create()));
+        result.add(title, download, body);
     }
 
     private void refreshHistory() {
         history.removeAll();
-        for (AISummary s : service.recent(5)) {
-            Button b = new Button(s.summaryPeriodStart().format(DATE) + " - "
-                    + s.summaryPeriodEnd().format(DATE), e -> show(s));
-            b.addClassName("filter-chip");
-            history.add(b);
+        List<AISummary> summaries = service.recent(20);
+        if (summaries.isEmpty()) {
+            return;
         }
+        Span title = new Span("Previously generated summaries - click one to view it");
+        title.addClassName("summary-history-title");
+        Div grid = new Div();
+        grid.addClassName("summary-history-grid");
+        for (AISummary s : summaries) {
+            Span period = new Span(s.summaryPeriodStart().format(DATE) + " - "
+                    + s.summaryPeriodEnd().format(DATE));
+            period.addClassName("summary-history-period");
+            Span meta = new Span("Generated " + s.generatedAt().format(DATE) + " | "
+                    + s.reportCount() + " reports");
+            meta.addClassName("report-meta");
+            Div item = new Div(period, meta);
+            item.addClassName("summary-history-item");
+            item.addClickListener(e -> show(s, true));
+            grid.add(item);
+        }
+        history.add(title, grid);
     }
 }

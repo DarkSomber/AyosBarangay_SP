@@ -33,10 +33,10 @@ public class JdbcReportRepository implements ReportRepository {
         jdbc.sql("""
                 INSERT INTO reports (user_id, description, status, date_submitted, updated_at,
                                      address, latitude, longitude, reviewed_by, review_date,
-                                     deleted_at, deletion_reason)
+                                     deleted_at, deletion_reason, priority)
                 VALUES (:userId, :description, :status, :submitted, :updated,
                         :address, :lat, :lng, :reviewedBy, :reviewDate,
-                        :deletedAt, :deletionReason)
+                        :deletedAt, :deletionReason, :priority)
                 """)
                 .param("userId", r.userId())
                 .param("description", r.description())
@@ -50,12 +50,13 @@ public class JdbcReportRepository implements ReportRepository {
                 .param("reviewDate", r.reviewDate())
                 .param("deletedAt", r.deletedAt())
                 .param("deletionReason", r.deletionReason())
+                .param("priority", r.priority().name())
                 .update(keys);
 
         int id = keys.getKey().intValue();
         return new Report(id, r.userId(), r.description(), r.status(), r.dateSubmitted(),
                 r.updatedAt(), r.address(), r.latitude(), r.longitude(), r.reviewedBy(),
-                r.reviewDate(), r.deletedAt(), r.deletionReason());
+                r.reviewDate(), r.deletedAt(), r.deletionReason(), r.priority());
     }
 
     private static final String OPEN_OWNED = """
@@ -84,6 +85,14 @@ public class JdbcReportRepository implements ReportRepository {
                 .param("now", now)
                 .param("id", reportId)
                 .param("userId", userId)
+                .update() > 0;
+    }
+
+    @Override
+    public boolean updatePriority(int reportId, ReportPriority priority) {
+        return jdbc.sql("UPDATE reports SET priority = :priority WHERE report_id = :id AND deleted_at IS NULL")
+                .param("priority", priority.name())
+                .param("id", reportId)
                 .update() > 0;
     }
 
@@ -142,6 +151,7 @@ public class JdbcReportRepository implements ReportRepository {
                 rs.getObject("reviewed_by", Integer.class),
                 rs.getObject("review_date", LocalDateTime.class),
                 rs.getObject("deleted_at", LocalDateTime.class),
-                rs.getString("deletion_reason"));
+                rs.getString("deletion_reason"),
+                ReportPriority.valueOf(rs.getString("priority")));
     }
 }

@@ -5,12 +5,13 @@ import java.time.LocalDateTime;
 public record Report(Integer reportId, int userId, String description, ReportStatus status,
                      LocalDateTime dateSubmitted, LocalDateTime updatedAt, String address,
                      double latitude, double longitude, Integer reviewedBy, LocalDateTime reviewDate,
-                     LocalDateTime deletedAt, String deletionReason) {
+                     LocalDateTime deletedAt, String deletionReason, ReportPriority priority) {
 
     public Report {
         Validation.requirePositive(userId, "User id");
         description = Validation.requireText(description, "Description", 2000);
         Validation.requireNonNull(status, "Status");
+        Validation.requireNonNull(priority, "Priority");
         Validation.requireNonNull(dateSubmitted, "Date submitted");
         Validation.requireNonNull(updatedAt, "Updated at");
         address = Validation.requireText(address, "Address", 255);
@@ -33,10 +34,21 @@ public record Report(Integer reportId, int userId, String description, ReportSta
                                 double latitude, double longitude) {
         LocalDateTime now = LocalDateTime.now();
         return new Report(null, userId, description, ReportStatus.PENDING, now, now,
-                address, latitude, longitude, null, null, null, null);
+                address, latitude, longitude, null, null, null, null, ReportPriority.NORMAL);
     }
 
     public boolean isDeleted() {
         return deletedAt != null;
+    }
+
+    public boolean isOverdue(LocalDateTime now, int pendingDays, int reviewDays) {
+        if (isDeleted()) {
+            return false;
+        }
+        if (status == ReportStatus.PENDING) {
+            return dateSubmitted.plusDays(pendingDays).isBefore(now);
+        }
+        return status == ReportStatus.UNDER_REVIEW && reviewDate != null
+                && reviewDate.plusDays(reviewDays).isBefore(now);
     }
 }

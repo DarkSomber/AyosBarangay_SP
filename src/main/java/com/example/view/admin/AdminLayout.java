@@ -9,7 +9,6 @@ import com.example.view.BrandLogo;
 import com.example.view.NavBar;
 import com.vaadin.flow.component.HasElement;
 import com.example.model.User;
-import com.example.view.DevToolsBar;
 import com.example.view.NotificationBell;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
@@ -61,7 +60,7 @@ public class AdminLayout extends Div implements RouterLayout, AfterNavigationObs
 
         contentArea.addClassName("admin-content");
 
-        Div main = new Div(header, new DevToolsBar(session, notifier), contentArea);
+        Div main = new Div(header, contentArea);
         main.addClassName("admin-main");
         return main;
     }

@@ -13,6 +13,8 @@ public interface ReportRepository {
 
     boolean softDelete(int reportId, int userId, String reason, LocalDateTime now);
 
+    boolean updatePriority(int reportId, ReportPriority priority);
+
     void saveImage(ReportImage image);
 
     List<ReportImage> findImagesByReportId(int reportId);

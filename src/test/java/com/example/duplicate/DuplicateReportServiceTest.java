@@ -11,6 +11,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.example.model.Report;
+import com.example.model.ReportPriority;
 import com.example.model.ReportRepository;
 import com.example.model.ReportStatus;
 
@@ -122,6 +123,6 @@ class DuplicateReportServiceTest {
                           double latitude, double longitude, LocalDateTime deletedAt) {
         return new Report(id, 1, description, ReportStatus.PENDING, submitted, submitted,
                 address, latitude, longitude, null, null, deletedAt,
-                deletedAt == null ? null : "Removed for test");
+                deletedAt == null ? null : "Removed for test", ReportPriority.NORMAL);
     }
 }

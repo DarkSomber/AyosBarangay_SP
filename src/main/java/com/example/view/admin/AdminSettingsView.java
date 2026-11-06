@@ -39,8 +39,8 @@ public class AdminSettingsView extends Div {
     private Div buildPanel() {
         Button editPassword = actionButton("Edit",
                 () -> new ChangePasswordDialog(auth, session).open());
-        Button viewDetails = actionButton("View",
-                () -> new BarangayInfoDialog(info).open());
+        Button viewDetails = actionButton("Edit",
+                () -> new BarangayInfoDialog(info, true).open());
 
         Checkbox notifications = new Checkbox();
         notifications.setAriaLabel("New report notifications");
@@ -66,7 +66,7 @@ public class AdminSettingsView extends Div {
 
         Div panel = new Div(
                 settingRow("Change Password", editPassword),
-                settingRow("View Barangay Details", viewDetails),
+                settingRow("Edit Barangay Details", viewDetails),
                 settingRow("New Report Notifications", notifications));
         panel.addClassNames("dashboard-panel", "settings-panel");
         return panel;

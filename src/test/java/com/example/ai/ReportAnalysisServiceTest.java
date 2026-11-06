@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
 import com.example.model.Report;
+import com.example.model.ReportPriority;
 import com.example.model.ReportStatus;
 
 class ReportAnalysisServiceTest {
@@ -51,7 +52,7 @@ class ReportAnalysisServiceTest {
         ReportAnalysisService service = new ReportAnalysisService(description -> analysis());
         Report unsaved = new Report(null, 1, "Description", ReportStatus.PENDING,
                 LocalDateTime.now(), LocalDateTime.now(), "Address", 0, 0,
-                null, null, null, null);
+                null, null, null, null, ReportPriority.NORMAL);
 
         assertThrows(IllegalArgumentException.class, () -> service.analyze(unsaved));
     }
@@ -59,7 +60,7 @@ class ReportAnalysisServiceTest {
     private static Report report(int id, String description) {
         LocalDateTime now = LocalDateTime.now();
         return new Report(id, 1, description, ReportStatus.PENDING, now, now,
-                "Address", 0, 0, null, null, null, null);
+                "Address", 0, 0, null, null, null, null, ReportPriority.NORMAL);
     }
 
     private static ReportAnalysis analysis() {

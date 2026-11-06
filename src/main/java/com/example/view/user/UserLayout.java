@@ -8,7 +8,6 @@ import com.example.view.BrandLogo;
 import com.example.view.NavBar;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.HasElement;
-import com.example.view.DevToolsBar;
 import com.example.view.NotificationBell;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -59,7 +58,7 @@ public class UserLayout extends Div implements RouterLayout, AfterNavigationObse
 
         contentArea.addClassName("admin-content");
 
-        Div main = new Div(header, new DevToolsBar(session, notifier), contentArea);
+        Div main = new Div(header, contentArea);
         main.addClassName("admin-main");
         return main;
     }
